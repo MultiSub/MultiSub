@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MultiSubs for HBO Max</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="popup-shell">
+      <header class="popup-header">
+        <h1>MultiSubs for HBO Max</h1>
+      </header>
+
+      <section class="panel" aria-labelledby="display-heading">
+        <h2 id="display-heading">Main Subtitle</h2>
+        <div class="segmented-control" role="radiogroup" aria-label="Main subtitle display">
+          <button type="button" data-primary-mode="native" role="radio" aria-checked="true">HBO style</button>
+          <button type="button" data-primary-mode="plugin" role="radio" aria-checked="false">Matched style</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="placement-heading">
+        <h2 id="placement-heading">Second Subtitle Position</h2>
+        <div class="segmented-control" role="radiogroup" aria-label="Second subtitle position">
+          <button type="button" data-secondary-placement="top" role="radio" aria-checked="false">Top</button>
+          <button type="button" data-secondary-placement="bottom" role="radio" aria-checked="true">Bottom</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="appearance-heading">
+        <h2 id="appearance-heading">Subtitle Look</h2>
+
+        <div class="preview-stage" aria-hidden="true">
+          <div class="subtitle-preview" data-preview>Subtitle preview</div>
+        </div>
+
+        <label class="control-row" for="secondaryTextScale">
+          <span>Text size</span>
+          <output data-value-for="secondaryTextScale"></output>
+        </label>
+        <input id="secondaryTextScale" name="secondaryTextScale" type="range" min="0.7" max="1.6" step="0.05">
+
+        <label class="control-row" for="secondaryTextStroke">
+          <span>Readable outline</span>
+          <output data-value-for="secondaryTextStroke"></output>
+        </label>
+        <input id="secondaryTextStroke" name="secondaryTextStroke" type="range" min="0" max="4" step="0.25">
+
+        <label class="control-row" for="secondaryTextOpacity">
+          <span>Subtitle brightness</span>
+          <output data-value-for="secondaryTextOpacity"></output>
+        </label>
+        <input id="secondaryTextOpacity" name="secondaryTextOpacity" type="range" min="0.35" max="1" step="0.05">
+
+        <label class="control-row" for="secondaryBottomVh">
+          <span>Screen position</span>
+          <output data-value-for="secondaryBottomVh"></output>
+        </label>
+        <input id="secondaryBottomVh" name="secondaryBottomVh" type="range" min="7" max="24" step="1">
+
+        <div class="control-row color-row">
+          <label for="secondaryTextColor">Text color</label>
+          <input id="secondaryTextColor" name="secondaryTextColor" type="color">
+        </div>
+
+        <div class="swatches" aria-label="Color presets">
+          <button type="button" class="swatch swatch-white" data-color="#ffffff" aria-label="White"></button>
+          <button type="button" class="swatch swatch-yellow" data-color="#ffe66d" aria-label="Yellow"></button>
+          <button type="button" class="swatch swatch-blue" data-color="#9ee7ff" aria-label="Blue"></button>
+          <button type="button" class="swatch swatch-green" data-color="#b7ff9e" aria-label="Green"></button>
+        </div>
+      </section>
+
+      <footer class="popup-footer">
+        <button type="button" id="resetSettings">Restore defaults</button>
+      </footer>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

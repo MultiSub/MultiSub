@@ -1,0 +1,146 @@
+.hbo-dual-sub-overlay {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: clamp(104px, 13vh, 166px);
+  z-index: 2147483647;
+  box-sizing: border-box;
+  width: min(92vw, 1180px);
+  max-height: 28vh;
+  padding: 0 2vw;
+  border: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: translateX(-50%);
+  pointer-events: none;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(20px, 2.1vw, 36px);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: 0;
+  text-align: center;
+  -webkit-text-stroke: clamp(1px, 0.08em, 2px) rgb(0 0 0 / 88%);
+  paint-order: stroke fill;
+  text-shadow:
+    rgb(0 0 0 / 88%) 0 1px 1px,
+    rgb(0 0 0 / 76%) 0 0 4px,
+    rgb(0 0 0 / 68%) 0 2px 6px;
+  white-space: pre-wrap;
+}
+
+.hbo-dual-sub-overlay:empty {
+  display: none;
+}
+
+.hbo-dual-sub-primary-overlay {
+  z-index: 2147483646;
+}
+
+html[data-hbo-dual-sub-primary-mode='plugin'] [class*='TextCue'],
+html[data-hbo-dual-sub-primary-mode='plugin'] [class*='CaptionWindow'] {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+html[data-hbo-dual-sub-primary-mode='plugin'] video::cue {
+  color: transparent;
+  background-color: transparent;
+  text-shadow: none;
+}
+
+video::cue {
+  color: #fff;
+  background-color: transparent;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  text-shadow:
+    rgb(0 0 0 / 88%) 0 1px 1px,
+    rgb(0 0 0 / 76%) 0 0 4px,
+    rgb(0 0 0 / 68%) 0 2px 6px;
+}
+
+.hbo-dual-sub-menu {
+  position: relative;
+  z-index: 5;
+  margin-top: 28px;
+  color: #fff;
+  font-family: inherit;
+  pointer-events: auto;
+}
+
+.hbo-dual-sub-menu__heading {
+  display: block;
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.hbo-dual-sub-menu__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hbo-dual-sub-menu__option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  border: 0;
+  margin: 0;
+  padding: 6px 8px 6px 56px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.hbo-dual-sub-menu__option:hover,
+.hbo-dual-sub-menu__option:focus-visible {
+  outline: none;
+  color: #fff;
+  background: rgb(255 255 255 / 10%);
+}
+
+.hbo-dual-sub-menu__option[aria-checked='true']::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  width: 20px;
+  height: 12px;
+  border-left: 3px solid currentColor;
+  border-bottom: 3px solid currentColor;
+  transform: rotate(-45deg) translateY(-1px);
+}
+
+@media (max-width: 720px) {
+  .hbo-dual-sub-overlay {
+    bottom: clamp(86px, 12vh, 134px);
+    width: min(96vw, 640px);
+    max-height: 32vh;
+    font-size: clamp(18px, 5vw, 28px);
+  }
+
+  .hbo-dual-sub-menu__heading {
+    font-size: 20px;
+  }
+
+  .hbo-dual-sub-menu__option {
+    min-height: 40px;
+    padding-left: 48px;
+    font-size: 18px;
+  }
+}

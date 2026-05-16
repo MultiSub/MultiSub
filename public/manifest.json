@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "MultiSubs for HBO Max",
+  "description": "Free, open-source dual subtitles for HBO Max using official subtitle tracks.",
+  "version": "0.1.0",
+  "permissions": ["storage"],
+  "action": {
+    "default_title": "MultiSubs for HBO Max",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://play.hbomax.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["page-hook.js", "page-hook.js.map"],
+      "matches": ["https://play.hbomax.com/*"]
+    }
+  ]
+}
