@@ -23,24 +23,9 @@ HBO Max delivers video through DASH manifests. Many titles include multiple WebV
 
 The content script renders subtitles with `textContent`, not HTML injection. It does not bundle subtitle files and does not fetch subtitle data from outside the HBO Max playback session.
 
-## Installation
+## Availability
 
-This project is currently distributed as an unpacked Chrome extension.
-
-```bash
-bash scripts/setup-node.sh
-export PATH="$PWD/.tools/node/bin:$PATH"
-npm install
-npm run build
-```
-
-Then load the generated `dist` directory:
-
-1. Open `chrome://extensions`.
-2. Enable Developer mode.
-3. Click `Load unpacked`.
-4. Select the generated `dist` directory.
-5. Refresh the HBO Max playback tab.
+The extension is being prepared for a Chrome Web Store release. Until then, the source code is available here for review, testing, and contribution.
 
 ## Usage
 
@@ -52,46 +37,9 @@ Then load the generated `dist` directory:
 
 For the most consistent visual result, set `Main Subtitle` to `Matched style` in the popup. In that mode, HBO's selected subtitle remains the main subtitle choice, but the extension renders it with the same style system as the second subtitle.
 
-## Development
-
-Recommended environment: WSL Ubuntu with the project-local Node 22 toolchain.
-
-```bash
-bash scripts/setup-node.sh
-export PATH="$PWD/.tools/node/bin:$PATH"
-npm install
-npm run typecheck
-npm test
-npm run build
-```
-
-The generated `dist` directory is ignored by git. Rebuild it locally before loading the extension in Chrome.
-
-## Project Structure
-
-```text
-public/
-  manifest.json       Chrome MV3 manifest
-  popup.html          Toolbar popup UI
-  popup.css           Popup styling
-  styles.css          HBO page overlay/menu styles
-
-src/
-  content.ts          Content script, HBO menu integration, subtitle overlays
-  page-hook.ts        Page-context fetch/XHR hook and subtitle loading
-  mpd.ts              DASH manifest subtitle track extraction
-  vtt.ts              WebVTT cue parsing and segmented timing normalization
-  timeline.ts         Manifest/video timeline offset helpers
-  settings.ts         Popup and runtime settings model
-  popup.ts            Toolbar popup behavior
-
-tests/
-  *.test.ts           Parser, timeline, and settings tests
-```
-
 ## Debugging Subtitle Sync
 
-The extension writes a live JSON snapshot into the HBO page at `#hbo-dual-sub-debug`. After reloading the unpacked extension and refreshing the playback page, run this in DevTools Console:
+The extension writes a live JSON snapshot into the HBO page at `#hbo-dual-sub-debug`. With the extension running on a playback page, run this in DevTools Console:
 
 ```js
 JSON.parse(document.querySelector('#hbo-dual-sub-debug').textContent)
@@ -128,13 +76,7 @@ Issues and pull requests are welcome. The most useful reports include:
 - whether the issue happens after seeking
 - a `#hbo-dual-sub-debug` snapshot when sync looks wrong
 
-Please run the checks before opening a pull request:
-
-```bash
-npm run typecheck
-npm test
-npm run build
-```
+Development notes and local verification commands live in [AGENTS.md](AGENTS.md).
 
 ## Inspiration
 
