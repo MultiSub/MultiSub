@@ -60,6 +60,8 @@ npm run build
 
 The generated `dist` directory is used for unpacked-extension testing, but it should not be committed.
 
+GitHub Actions runs the same verification flow in `.github/workflows/build.yml` and uploads a zipped `dist` artifact.
+
 ## Browser Testing
 
 After `npm run build`:
