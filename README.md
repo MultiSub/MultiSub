@@ -17,6 +17,14 @@ MultiSubs for HBO Max adds a second subtitle track to the HBO Max player, using 
 - Provides a toolbar popup for text size, outline, brightness, position, color, main subtitle mode, and second subtitle placement.
 - Includes live debug snapshots for investigating subtitle sync issues.
 
+## Screenshots
+
+The images below are neutral mock screenshots that show the extension layout without using copyrighted video frames. Real playback screenshots can replace them before the Chrome Web Store release.
+
+![Dual subtitle overlay mock screenshot](docs/screenshots/dual-subtitles.svg)
+
+![Toolbar popup settings mock screenshot](docs/screenshots/popup-settings.svg)
+
 ## How It Works
 
 HBO Max delivers video through DASH manifests. Many titles include multiple WebVTT subtitle tracks in the manifest. This extension injects a page hook at `document_start`, watches for the `.mpd` manifest, extracts the available subtitle tracks, and then loads the selected subtitle segments on demand.

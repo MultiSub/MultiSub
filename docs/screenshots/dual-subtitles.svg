@@ -1,0 +1,27 @@
+<svg width="1280" height="720" viewBox="0 0 1280 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1280" height="720" fill="#10131a"/>
+  <defs>
+    <linearGradient id="video" x1="0" y1="0" x2="1280" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#24304a"/>
+      <stop offset="0.48" stop-color="#4d324f"/>
+      <stop offset="1" stop-color="#132a31"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-40%" width="140%" height="180%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+  <rect x="72" y="54" width="1136" height="612" rx="18" fill="url(#video)"/>
+  <rect x="72" y="54" width="1136" height="612" rx="18" fill="#000000" opacity="0.18"/>
+  <circle cx="1030" cy="194" r="92" fill="#ffe08a" opacity="0.16"/>
+  <circle cx="286" cy="236" r="148" fill="#8fe3ff" opacity="0.13"/>
+  <rect x="72" y="594" width="1136" height="72" rx="0" fill="#05070b" opacity="0.78"/>
+  <rect x="132" y="626" width="840" height="6" rx="3" fill="#ffffff" opacity="0.28"/>
+  <rect x="132" y="626" width="512" height="6" rx="3" fill="#ffffff"/>
+  <circle cx="644" cy="629" r="13" fill="#ffffff"/>
+  <text x="640" y="142" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700" filter="url(#shadow)">We can watch with two subtitle tracks.</text>
+  <text x="640" y="526" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="800" filter="url(#shadow)">我们可以同时看两种字幕。</text>
+  <rect x="898" y="86" width="274" height="48" rx="8" fill="#0c1118" opacity="0.74"/>
+  <circle cx="926" cy="110" r="9" fill="#6ee7b7"/>
+  <text x="948" y="118" fill="#e7edf8" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700">Matched style</text>
+  <text x="640" y="700" text-anchor="middle" fill="#8a93a3" font-family="Arial, Helvetica, sans-serif" font-size="18">Neutral mock screenshot. Replace with a real playback screenshot before release.</text>
+</svg>
