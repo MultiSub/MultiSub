@@ -3,7 +3,7 @@
   left: 50%;
   right: auto;
   bottom: clamp(104px, 13vh, 166px);
-  z-index: 2147483647;
+  z-index: 2147483646;
   box-sizing: border-box;
   width: min(92vw, 1180px);
   max-height: 28vh;
@@ -34,7 +34,33 @@
 }
 
 .hbo-dual-sub-primary-overlay {
-  z-index: 2147483646;
+  z-index: 2147483647;
+  font-weight: 800;
+}
+
+.hbo-dual-sub-stack {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(104px, 13vh, 166px);
+  z-index: 2147483647;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.6vh, 10px);
+  width: min(92vw, 1180px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.hbo-dual-sub-stack > .hbo-dual-sub-overlay {
+  position: static;
+  left: auto;
+  right: auto;
+  top: auto !important;
+  bottom: auto !important;
+  width: 100%;
+  max-height: none;
+  transform: none;
 }
 
 html[data-hbo-dual-sub-primary-mode='plugin'] [class*='TextCue'],
@@ -132,6 +158,11 @@ video::cue {
     width: min(96vw, 640px);
     max-height: 32vh;
     font-size: clamp(18px, 5vw, 28px);
+  }
+
+  .hbo-dual-sub-stack {
+    bottom: clamp(86px, 12vh, 134px);
+    width: min(96vw, 640px);
   }
 
   .hbo-dual-sub-menu__heading {

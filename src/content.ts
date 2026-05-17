@@ -14,6 +14,7 @@ interface StoredSelection {
 const STORAGE_KEYS: (keyof StoredSelection)[] = ['secondaryTrackId', 'secondaryLanguage'];
 const DEBUG_SNAPSHOT_ID = 'hbo-dual-sub-debug';
 const DEBUG_SNAPSHOT_INTERVAL_MS = 250;
+const PRIMARY_SUBTITLE_SCALE_MULTIPLIER = 1.16;
 
 let tracks: SubtitleTrack[] = [];
 let selectedTrackId: string | null = null;
@@ -22,6 +23,7 @@ let primaryTrackId: string | null = null;
 let primaryCues: SubtitleCue[] = [];
 let overlay: HTMLDivElement | undefined;
 let primaryOverlay: HTMLDivElement | undefined;
+let bottomStack: HTMLDivElement | undefined;
 let storedSelectionPromise: Promise<StoredSelection> | undefined;
 let storedSettingsPromise: Promise<SubtitleSettings> | undefined;
 let subtitleSettings: SubtitleSettings = DEFAULT_SUBTITLE_SETTINGS;
@@ -41,6 +43,7 @@ installStorageListener();
 onDocumentReady(() => {
   ensureOverlay();
   ensurePrimaryOverlay();
+  installFullscreenObserver();
   installMenuObserver();
   startSubtitleLoop();
 });
@@ -159,6 +162,12 @@ function installMenuObserver(): void {
     subtree: true,
   });
   queueMenuRender();
+}
+
+function installFullscreenObserver(): void {
+  document.addEventListener('fullscreenchange', syncOverlayHost);
+  document.addEventListener('webkitfullscreenchange', syncOverlayHost);
+  syncOverlayHost();
 }
 
 function queueMenuRender(): void {
@@ -784,10 +793,11 @@ function roundTime(value: number): number {
 
 function ensureOverlay(): void {
   if (overlay !== undefined && overlay.isConnected) {
+    syncOverlayHost();
     return;
   }
 
-  if (document.body === null) {
+  if (overlayHost() === null) {
     return;
   }
 
@@ -795,15 +805,16 @@ function ensureOverlay(): void {
   overlay.className = 'hbo-dual-sub-overlay';
   overlay.dataset.hboDualSubOverlay = 'true';
   applyOverlaySettings();
-  document.body.append(overlay);
+  syncOverlayHost();
 }
 
 function ensurePrimaryOverlay(): void {
   if (primaryOverlay !== undefined && primaryOverlay.isConnected) {
+    syncOverlayHost();
     return;
   }
 
-  if (document.body === null) {
+  if (overlayHost() === null) {
     return;
   }
 
@@ -811,17 +822,21 @@ function ensurePrimaryOverlay(): void {
   primaryOverlay.className = 'hbo-dual-sub-overlay hbo-dual-sub-primary-overlay';
   primaryOverlay.dataset.hboDualSubPrimaryOverlay = 'true';
   applyOverlaySettings();
-  document.body.append(primaryOverlay);
+  syncOverlayHost();
 }
 
 function applyOverlaySettings(): void {
-  const primaryBottom = subtitleSettings.secondaryBottomVh;
+  syncOverlayHost();
+
+  const baseBottom = subtitleSettings.secondaryBottomVh;
+  const stackLowerSubtitles = shouldStackLowerSubtitles();
+  const primaryBottom = baseBottom;
   const secondaryPosition =
     subtitleSettings.secondarySubtitlePlacement === 'top'
-      ? { edge: 'top' as const, vh: primaryBottom }
+      ? { edge: 'top' as const, vh: baseBottom }
       : {
           edge: 'bottom' as const,
-          vh: primaryPluginModeEnabled() && primaryTrackId !== null ? Math.min(32, primaryBottom + 8) : primaryBottom,
+          vh: baseBottom,
         };
 
   if (overlay !== undefined) {
@@ -829,8 +844,81 @@ function applyOverlaySettings(): void {
   }
 
   if (primaryOverlay !== undefined) {
-    applyTextOverlaySettings(primaryOverlay, { edge: 'bottom', vh: primaryBottom }, subtitleSettings.secondaryTextScale);
+    applyTextOverlaySettings(primaryOverlay, { edge: 'bottom', vh: primaryBottom }, primarySubtitleTextScale());
   }
+
+  if (bottomStack !== undefined) {
+    bottomStack.style.bottom = `clamp(72px, ${baseBottom.toFixed(1)}vh, 260px)`;
+    bottomStack.hidden = !stackLowerSubtitles;
+  }
+}
+
+function syncOverlayHost(): void {
+  const host = overlayHost();
+  if (host === null) {
+    return;
+  }
+
+  if (shouldStackLowerSubtitles()) {
+    const stack = ensureBottomStack(host);
+    if (primaryOverlay !== undefined && overlay !== undefined) {
+      stack.append(primaryOverlay, overlay);
+    } else if (primaryOverlay !== undefined) {
+      stack.append(primaryOverlay);
+    } else if (overlay !== undefined) {
+      stack.append(overlay);
+    }
+    return;
+  }
+
+  if (primaryOverlay !== undefined && primaryOverlay.parentElement !== host) {
+    host.append(primaryOverlay);
+  }
+
+  if (overlay !== undefined && overlay.parentElement !== host) {
+    host.append(overlay);
+  }
+
+  if (bottomStack !== undefined) {
+    bottomStack.hidden = true;
+  }
+}
+
+function overlayHost(): HTMLElement | null {
+  const fullscreenElement = document.fullscreenElement;
+  if (fullscreenElement instanceof HTMLElement && !(fullscreenElement instanceof HTMLVideoElement)) {
+    return fullscreenElement;
+  }
+
+  return document.body;
+}
+
+function primarySubtitleTextScale(): number {
+  return subtitleSettings.secondaryTextScale * PRIMARY_SUBTITLE_SCALE_MULTIPLIER;
+}
+
+function shouldStackLowerSubtitles(): boolean {
+  return (
+    primaryPluginModeEnabled() &&
+    primaryTrackId !== null &&
+    selectedTrackId !== null &&
+    subtitleSettings.secondarySubtitlePlacement === 'bottom'
+  );
+}
+
+function ensureBottomStack(host: HTMLElement): HTMLDivElement {
+  if (bottomStack === undefined) {
+    bottomStack = document.createElement('div');
+    bottomStack.className = 'hbo-dual-sub-stack';
+    bottomStack.dataset.hboDualSubStack = 'true';
+  }
+
+  if (bottomStack.parentElement !== host) {
+    host.append(bottomStack);
+  }
+
+  bottomStack.hidden = false;
+  return bottomStack;
 }
 
 function applyTextOverlaySettings(

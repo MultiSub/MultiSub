@@ -78,8 +78,10 @@ After `npm run build`:
 - The extension adds a `Secondary Subtitles` section below HBO's subtitle options.
 - The second subtitle selection is persisted and restored when a video opens.
 - `Matched style` mode lets the extension render the primary subtitle too; the native HBO caption DOM is hidden only after the matching official track is loaded.
-- Plugin-rendered primary subtitles always stay at the bottom.
-- The second subtitle can be placed at the top or in the lower subtitle area.
+- Plugin-rendered primary subtitles stay in the lower subtitle area.
+- When both plugin-rendered subtitles are in the lower area, the primary subtitle is larger and above the second subtitle.
+- The second subtitle can also be placed at the top.
+- Overlay elements must be moved into the active fullscreen element so subtitles remain visible in fullscreen mode.
 - Subtitle text must be rendered with `textContent`, not injected HTML.
 - Only the selected second subtitle track should be loaded; avoid eager-loading every language.
 

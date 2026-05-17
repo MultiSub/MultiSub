@@ -11,8 +11,8 @@ MultiSubs for HBO Max adds a second subtitle track to the HBO Max player, using 
 - Keeps HBO's original subtitle selector working.
 - Loads only the selected second subtitle track.
 - Supports a matched-style mode where the extension renders both the main and second subtitles for a consistent look.
-- Lets the second subtitle appear at the top of the video or in the lower subtitle area.
-- Keeps the main subtitle at the bottom when plugin-rendered subtitles are enabled.
+- Lets the second subtitle appear at the top of the video or below the main subtitle in the lower subtitle area.
+- Keeps plugin-rendered main subtitles larger and above the second subtitle when both are shown at the bottom.
 - Restores the last selected second subtitle when a video opens.
 - Provides a toolbar popup for text size, outline, brightness, position, color, main subtitle mode, and second subtitle placement.
 - Includes live debug snapshots for investigating subtitle sync issues.
