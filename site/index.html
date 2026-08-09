@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="MultiSub adds a second official subtitle track to HBO Max, with flexible placement, matched styling, and local-only settings."
+    >
+    <meta name="theme-color" content="#071128">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="MultiSub">
+    <meta property="og:title" content="MultiSub: Official Translation Tracks for HBO Max">
+    <meta
+      property="og:description"
+      content="Watch with two HBO Max-provided subtitle tracks on screen at the same time."
+    >
+    <meta property="og:url" content="https://multisub-extension.pages.dev/">
+    <link rel="canonical" href="https://multisub-extension.pages.dev/">
+    <title>MultiSub: Official Translation Tracks for HBO Max</title>
+    <link rel="icon" type="image/png" href="assets/icon128.png">
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header" data-site-header>
+      <nav class="nav container" aria-label="Primary navigation">
+        <a class="brand" href="#top" aria-label="MultiSub home">
+          <img src="assets/icon128.png" alt="" width="40" height="40">
+          <span>MultiSub</span>
+        </a>
+
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-menu"
+          data-menu-toggle
+        >
+          <span class="menu-toggle__label">Menu</span>
+          <span class="menu-toggle__lines" aria-hidden="true"></span>
+        </button>
+
+        <div class="nav-links" id="site-menu" data-site-menu>
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="https://github.com/MultiSub/MultiSub" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" id="top">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <div class="eyebrow"><span aria-hidden="true"></span> Free, open source, Manifest V3</div>
+            <p class="product-name">MultiSub: Official Translation Tracks for HBO Max</p>
+            <h1>Two official subtitle tracks. One screen.</h1>
+            <p class="hero-lede">
+              Follow the original dialogue and another available language at the same time. MultiSub adds a second
+              HBO Max-provided subtitle track without replacing the player you already know.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#install">See how to install</a>
+              <a
+                class="button button-secondary"
+                href="https://github.com/MultiSub/MultiSub"
+                target="_blank"
+                rel="noreferrer"
+              >View source on GitHub</a>
+            </div>
+            <p class="hero-clarifier">
+              <strong>“Official” describes the subtitle tracks supplied in the current HBO Max playback.</strong>
+              MultiSub itself is an independent, unofficial extension.
+            </p>
+          </div>
+
+          <div class="hero-visual" aria-label="Illustration of two subtitle tracks in one video player">
+            <div class="player-card">
+              <div class="player-chrome" aria-hidden="true">
+                <span></span><span></span><span></span>
+                <div class="player-chrome__label">play.hbomax.com</div>
+              </div>
+              <div class="player-stage">
+                <div class="stage-orb stage-orb--one" aria-hidden="true"></div>
+                <div class="stage-orb stage-orb--two" aria-hidden="true"></div>
+                <div class="play-mark" aria-hidden="true"></div>
+                <div class="subtitle-preview" aria-hidden="true">
+                  <div class="subtitle-line subtitle-line--primary">The story stays in its original voice.</div>
+                  <div class="subtitle-line subtitle-line--secondary">Follow along in another available language.</div>
+                </div>
+                <div class="player-progress" aria-hidden="true"><span></span></div>
+              </div>
+            </div>
+            <p class="visual-caption">Illustrative preview — no video frames or external subtitle files used.</p>
+          </div>
+        </div>
+
+        <div class="container proof-row" aria-label="Product highlights">
+          <div><strong>Official tracks only</strong><span>From the current title</span></div>
+          <div><strong>No AI translation</strong><span>No external subtitle search</span></div>
+          <div><strong>Local preferences</strong><span>No account or analytics</span></div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="container">
+          <div class="section-heading">
+            <p class="section-kicker">Designed for the player</p>
+            <h2>Dual subtitles without a second workflow.</h2>
+            <p>
+              MultiSub works with the subtitle languages HBO Max already exposes for the title you are watching.
+            </p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <span class="feature-number">01</span>
+              <h3>Two official tracks together</h3>
+              <p>Keep your main subtitle and add one more available track for language learning or bilingual viewing.</p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-number">02</span>
+              <h3>Inside the native menu</h3>
+              <p>A Secondary Subtitles section appears beside HBO Max’s existing choices, while the original selector keeps working.</p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-number">03</span>
+              <h3>Readable your way</h3>
+              <p>Place the second track at the top or bottom, then adjust size, outline, brightness, color, and position.</p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-number">04</span>
+              <h3>Focused and efficient</h3>
+              <p>Only selected tracks are loaded. There is no bundled subtitle library, external search, or cross-region unlocking.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-alt" id="how-it-works">
+        <div class="container">
+          <div class="section-heading section-heading--centered">
+            <p class="section-kicker">Install and use</p>
+            <h2>From install to dual subtitles in four steps.</h2>
+          </div>
+
+          <ol class="steps" id="install">
+            <li>
+              <span class="step-index">1</span>
+              <div><h3>Install and pin</h3><p>Add MultiSub from the Chrome Web Store, then pin it for quick access to display controls.</p></div>
+            </li>
+            <li>
+              <span class="step-index">2</span>
+              <div><h3>Start a title</h3><p>Open a supported video at <code>play.hbomax.com</code> and begin playback.</p></div>
+            </li>
+            <li>
+              <span class="step-index">3</span>
+              <div><h3>Choose two tracks</h3><p>Select your normal main subtitle, then choose another language under Secondary Subtitles.</p></div>
+            </li>
+            <li>
+              <span class="step-index">4</span>
+              <div><h3>Make it comfortable</h3><p>Use the toolbar popup to tune placement, matched styling, size, outline, brightness, and color.</p></div>
+            </li>
+          </ol>
+
+          <div class="settings-showcase">
+            <div class="settings-copy">
+              <p class="section-kicker">Control without clutter</p>
+              <h2>Keep HBO style, or match both tracks.</h2>
+              <p>
+                Native mode leaves the main subtitle exactly where HBO Max renders it. Matched style mode renders both
+                selected tracks through one consistent display system and keeps the main track larger when both sit at
+                the bottom.
+              </p>
+              <ul class="check-list">
+                <li>Top or bottom secondary placement</li>
+                <li>Fullscreen-aware overlays</li>
+                <li>Restored preferences on your next video</li>
+              </ul>
+            </div>
+            <div class="settings-card" aria-label="Illustration of subtitle display settings">
+              <div class="settings-card__header">
+                <img src="assets/icon128.png" alt="" width="34" height="34">
+                <div><strong>Subtitle look</strong><span>Preview your changes</span></div>
+              </div>
+              <div class="settings-preview">
+                <span>Subtitle preview</span>
+              </div>
+              <div class="setting-row setting-row--size"><span>Text size</span><i></i></div>
+              <div class="setting-row setting-row--outline"><span>Readable outline</span><i></i></div>
+              <div class="setting-row setting-row--brightness"><span>Brightness</span><i></i></div>
+              <div class="swatches" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="privacy-summary">
+        <div class="container privacy-summary">
+          <div class="privacy-summary__copy">
+            <p class="section-kicker">Privacy in one minute</p>
+            <h2>Your subtitle choices stay in your browser.</h2>
+            <p>
+              MultiSub has no account system, developer analytics, advertising network, or remote storage service.
+              Display settings and the selected track are stored locally through Chrome.
+            </p>
+            <a class="text-link" href="#privacy-policy">Read the complete Privacy Policy <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="privacy-points">
+            <div><span class="status-dot"></span><strong>No data sent to the developer</strong><small>No developer analytics, accounts, or advertising.</small></div>
+            <div><span class="status-dot"></span><strong>No developer server</strong><small>No extension data is sent to us.</small></div>
+            <div><span class="status-dot"></span><strong>Narrow site access</strong><small>Runs only on <code>play.hbomax.com</code>.</small></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="disclaimer" id="disclaimer">
+        <div class="container disclaimer-inner">
+          <div class="disclaimer-mark" aria-hidden="true">i</div>
+          <div>
+            <h2>Independent and unofficial</h2>
+            <p>
+              MultiSub is not affiliated with, endorsed by, sponsored by, or produced by Max, HBO, Warner Bros.
+              Discovery, or their affiliates. “HBO Max,” “Max,” “HBO,” and related names belong to their respective
+              owners and are referenced only to identify compatibility and the source of available subtitle tracks.
+            </p>
+          </div>
+        </div>
+      </aside>
+
+      <section class="section open-source">
+        <div class="container open-source-card">
+          <div>
+            <p class="section-kicker">Open by design</p>
+            <h2>Inspect the code. Report an issue. Help improve sync.</h2>
+            <p>MultiSub is released under the MIT License, with parser and timing tests available in the public repository.</p>
+          </div>
+          <div class="open-source-actions">
+            <a class="button button-primary" href="https://github.com/MultiSub/MultiSub" target="_blank" rel="noreferrer">GitHub source</a>
+            <a class="button button-secondary" href="https://github.com/MultiSub/MultiSub/issues" target="_blank" rel="noreferrer">Open an issue</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section policy-section" id="privacy-policy" aria-labelledby="privacy-title">
+        <article class="container policy">
+          <header class="policy-header">
+            <p class="section-kicker">Legal and privacy</p>
+            <h2 id="privacy-title">Privacy Policy</h2>
+            <p>Effective and last updated: August 9, 2026</p>
+          </header>
+
+          <div class="policy-intro">
+            <p>
+              This Privacy Policy explains how the MultiSub Chrome extension (“MultiSub,” “the extension,” “we,” or
+              “us”) handles information. The short version is simple: MultiSub does not collect, sell, or transmit
+              personal information to its developer.
+            </p>
+          </div>
+
+          <div class="policy-content">
+            <section>
+              <h3>1. Scope</h3>
+              <p>
+                This policy applies to the MultiSub browser extension and this product website. It does not apply to
+                HBO Max, Chrome, GitHub, or other third-party services. Those services operate under their own terms and
+                privacy policies.
+              </p>
+            </section>
+
+            <section>
+              <h3>2. Information we collect</h3>
+              <p>
+                MultiSub does not access account passwords, cookies, or login credentials, and the developer does not
+                receive or maintain personal information, payment information, precise location, advertising
+                identifiers, or a record of the user’s general browsing history. To provide dual subtitles, the
+                extension locally processes the current HBO Max playback page URL and path, manifest and
+                subtitle-resource URLs, selected track metadata, subtitle text, and player timing and state during the
+                active page session. The extension does not include analytics, tracking pixels, advertising SDKs, or
+                an account system. This website also contains no third-party analytics or tracking scripts.
+              </p>
+            </section>
+
+            <section>
+              <h3>3. Information stored locally</h3>
+              <p>
+                MultiSub uses Chrome’s local extension storage to remember the selected subtitle track and display
+                preferences, including main subtitle mode, secondary placement, text size, outline, brightness, color,
+                and vertical position. This information stays in the user’s Chrome profile and is not sent to us.
+              </p>
+              <p>
+                During an active HBO Max page session, MultiSub may publish a local JSON diagnostic snapshot into the
+                HBO Max page DOM to help the user troubleshoot subtitle synchronization. It can contain current
+                subtitle text, timing, track metadata, and HBO Max playback or subtitle-resource URLs. The snapshot is
+                not transmitted to the developer and is discarded when the page is refreshed or closed.
+              </p>
+            </section>
+
+            <section>
+              <h3>4. HBO Max page access and subtitle processing</h3>
+              <p>
+                The extension runs only on <code>https://play.hbomax.com/*</code>. While a title is playing, it observes
+                the DASH playback manifest supplied to the page, identifies available WebVTT subtitle tracks, and loads
+                the segments required for the tracks the user selects. The current page URL and path, manifest data,
+                track metadata, subtitle text, subtitle-resource URLs, and playback timing and state are processed
+                locally in the browser for the user-facing dual-subtitle feature.
+              </p>
+              <p>
+                MultiSub does not transmit viewed title information, subtitle content, or playback activity to the
+                developer. It does not fetch subtitles from an outside subtitle provider, generate translations, or
+                unlock content that HBO Max has not made available in the current playback session.
+              </p>
+            </section>
+
+            <section>
+              <h3>5. Permissions</h3>
+              <p>The extension requests only the access needed for its single purpose:</p>
+              <ul>
+                <li><strong>Storage:</strong> saves subtitle selections and display preferences locally.</li>
+                <li><strong>Access to play.hbomax.com:</strong> adds the secondary subtitle menu, reads playback subtitle availability, and renders selected subtitles on the video page.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3>6. Network communication</h3>
+              <p>
+                MultiSub has no developer-operated backend. Network requests made by the extension are limited to the
+                HBO Max resources referenced by the current playback manifest, such as the selected official subtitle
+                segments. We do not receive those requests or their contents.
+              </p>
+              <p>
+                MultiSub does not execute remotely hosted code. All executable JavaScript is included in the extension
+                package. HBO Max manifests and WebVTT subtitle files are processed only as data and are never evaluated
+                as code.
+              </p>
+            </section>
+
+            <section>
+              <h3>7. Sharing, sale, and advertising</h3>
+              <p>
+                We do not sell, rent, share, or use user information for advertising, profiling, creditworthiness, or
+                any purpose unrelated to displaying the selected subtitles. Because no extension data is sent to us,
+                there is no developer-held user dataset to disclose to third parties.
+              </p>
+              <p>
+                Any use of information received from Chrome APIs complies with the Chrome Web Store User Data Policy,
+                including its Limited Use requirements, and is limited to providing and improving the extension’s
+                user-facing dual-subtitle functionality.
+              </p>
+            </section>
+
+            <section>
+              <h3>8. Retention and deletion</h3>
+              <p>
+                Local extension settings remain in the Chrome profile until the user changes them, clears extension
+                storage, resets settings where available, or uninstalls MultiSub. Uninstalling the extension removes
+                its locally stored extension data according to Chrome’s behavior.
+              </p>
+              <p>
+                Playback manifests, subtitle cues, player state, resource URLs, and diagnostic data are kept only in
+                the active HBO Max page session and are discarded when that page is refreshed or closed.
+              </p>
+            </section>
+
+            <section>
+              <h3>9. Security</h3>
+              <p>
+                MultiSub minimizes data handling by processing subtitle information locally and avoiding a remote
+                backend. The source code is publicly available for inspection. No software can guarantee absolute
+                security, but the extension is designed to request narrow access and avoid unnecessary data transfer.
+              </p>
+            </section>
+
+            <section>
+              <h3>10. Children’s privacy</h3>
+              <p>
+                MultiSub is not directed to children under 13 and does not knowingly collect personal information from
+                children. The extension does not create user accounts or collect age information.
+              </p>
+            </section>
+
+            <section>
+              <h3>11. Website hosting</h3>
+              <p>
+                This static website may be delivered through Cloudflare Pages. As part of normal website delivery and
+                security, the hosting provider may process limited request information such as IP addresses, browser
+                details, and timestamps under its own privacy terms. We do not add analytics scripts, use advertising
+                cookies, or use hosting request data to profile visitors.
+              </p>
+            </section>
+
+            <section>
+              <h3>12. Changes to this policy</h3>
+              <p>
+                We may update this policy if the extension’s functionality or data practices change. The revised policy
+                will show a new effective date on this page. Material changes will also be disclosed through the Chrome
+                Web Store listing where appropriate.
+              </p>
+            </section>
+
+            <section>
+              <h3>13. Contact</h3>
+              <p>
+                Questions about this policy or MultiSub can be sent to
+                <a href="mailto:andreychen9@gmail.com">andreychen9@gmail.com</a>. Technical problems and reproducible
+                subtitle sync reports can also be filed through
+                <a href="https://github.com/MultiSub/MultiSub/issues" target="_blank" rel="noreferrer">GitHub Issues</a>.
+              </p>
+            </section>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div class="footer-brand">
+          <img src="assets/icon128.png" alt="" width="38" height="38">
+          <div><strong>MultiSub</strong><span>Official subtitle tracks, side by side.</span></div>
+        </div>
+        <div class="footer-links">
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="https://github.com/MultiSub/MultiSub" target="_blank" rel="noreferrer">Source</a>
+          <a href="https://github.com/MultiSub/MultiSub/issues" target="_blank" rel="noreferrer">Issues</a>
+          <a href="mailto:andreychen9@gmail.com">Contact</a>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <span>© <span data-current-year>2026</span> MultiSub contributors.</span>
+        <span>Independent, unofficial, and open source.</span>
+      </div>
+    </footer>
+  </body>
+</html>

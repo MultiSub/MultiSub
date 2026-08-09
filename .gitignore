@@ -2,6 +2,7 @@ node_modules/
 dist/
 .tools/
 coverage/
+artifacts/
 .DS_Store
 screen-capture.png
 *.zip

@@ -1,8 +1,8 @@
-# MultiSubs for HBO Max
+# MultiSub for HBO Max
 
 Free and open-source dual subtitles for HBO Max.
 
-MultiSubs for HBO Max adds a second subtitle track to the HBO Max player, using the subtitle languages that are already available for the current title. It is built for people who watch with two languages at once: language learners, bilingual households, and anyone who wants original-language subtitles and another available language track on screen together.
+MultiSub for HBO Max adds a second subtitle track to the HBO Max player, using the subtitle languages that are already available for the current title. It is built for people who watch with two languages at once: language learners, bilingual households, and anyone who wants original-language subtitles and another available language track on screen together.
 
 ## Features
 
