@@ -47,6 +47,19 @@ keep me
 
     expect(cues).toEqual([{ start: 5, end: 6, text: 'keep me' }]);
   });
+
+  it('drops cues that contain only encoded whitespace', () => {
+    const cues = parseWebVtt(`WEBVTT
+
+00:00:01.000 --> 00:00:02.000
+&nbsp;
+
+00:00:03.000 --> 00:00:04.000
+&#160;
+`);
+
+    expect(cues).toEqual([]);
+  });
 });
 
 describe('parseSegmentedWebVtt', () => {

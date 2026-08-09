@@ -15,7 +15,6 @@ interface ParsedSegment {
 
 interface SubtitleGroupInfo {
   playlists?: ParsedPlaylist[];
-  name?: unknown;
   language?: unknown;
   lang?: unknown;
 }
@@ -38,17 +37,17 @@ export function extractSubtitleTracksFromParsedManifest(parsedManifest: unknown)
   const subGroups = getSubtitleGroups(parsedManifest);
   const candidates: SubtitleTrackCandidate[] = [];
 
-  for (const [language, info] of Object.entries(subGroups)) {
+  for (const [groupLabel, info] of Object.entries(subGroups)) {
     const playlists = Array.isArray(info?.playlists) ? info.playlists : [];
 
     for (const playlist of playlists as ParsedPlaylist[]) {
-      const segments = extractSegments(playlist);
+      const segments = extractSegments(playlist).filter((segment) => !isEmptySubtitlePlaceholderUrl(segment.url));
       if (segments.length === 0) {
         continue;
       }
 
-      const trackLanguage = extractLanguage(language, playlist, info);
-      const labelInfo = trackLabel(trackLanguage, playlist, info);
+      const trackLanguage = extractLanguage(groupLabel, playlist, info);
+      const labelInfo = trackLabel(groupLabel, trackLanguage);
       candidates.push({
         id: createTrackId(trackLanguage, labelInfo.label),
         label: labelInfo.label,
@@ -86,21 +85,21 @@ function getSubtitleGroups(parsedManifest: unknown): Record<string, SubtitleGrou
 function extractSegments(playlist: ParsedPlaylist): SubtitleSegment[] {
   const rawSegments = Array.isArray(playlist.segments) ? (playlist.segments as ParsedSegment[]) : [];
   const segments: SubtitleSegment[] = rawSegments.flatMap((segment) => {
-    if (typeof segment.resolvedUri !== 'string') {
+    if (typeof segment.resolvedUri !== 'string' || segment.resolvedUri.trim() === '') {
       return [];
     }
 
     return [
       {
-        url: segment.resolvedUri,
+        url: segment.resolvedUri.trim(),
         duration: typeof segment.duration === 'number' ? segment.duration : undefined,
         presentationTime: typeof segment.presentationTime === 'number' ? segment.presentationTime : undefined,
       },
     ];
   });
 
-  if (segments.length === 0 && typeof playlist.resolvedUri === 'string') {
-    segments.push({ url: playlist.resolvedUri });
+  if (segments.length === 0 && typeof playlist.resolvedUri === 'string' && playlist.resolvedUri.trim() !== '') {
+    segments.push({ url: playlist.resolvedUri.trim() });
   }
 
   return segments;
@@ -310,14 +309,22 @@ function extractLanguage(fallback: string, playlist: ParsedPlaylist, info: Subti
     fallback,
   ];
 
-  const language = candidates.find((candidate): candidate is string => typeof candidate === 'string' && !isTechnicalLabel(candidate));
-  return canonicalLanguage(language ?? fallback);
+  const language = candidates.find(
+    (candidate): candidate is string => typeof candidate === 'string' && isLanguageCode(candidate),
+  );
+  return canonicalLanguage(language ?? 'und');
 }
 
-function trackLabel(language: string, playlist: ParsedPlaylist, info: SubtitleGroupInfo): { label: string; genericLanguageLabel: boolean } {
-  const name = playlist.attributes?.NAME ?? info.name;
-  if (typeof name === 'string' && name.trim() !== '' && !isTechnicalLabel(name)) {
-    return { label: name.trim(), genericLanguageLabel: false };
+function trackLabel(groupLabel: string, language: string): { label: string; genericLanguageLabel: boolean } {
+  // mpd-parser stores Representation@id in playlist NAME. The subtitle-group
+  // key is the semantic AdaptationSet Label (or its language fallback).
+  const normalizedGroupLabel = groupLabel.trim();
+  if (
+    normalizedGroupLabel !== '' &&
+    !isTechnicalLabel(normalizedGroupLabel) &&
+    !isLanguageLabel(normalizedGroupLabel, language)
+  ) {
+    return { label: normalizedGroupLabel, genericLanguageLabel: true };
   }
 
   return { label: formatLanguage(language), genericLanguageLabel: true };
@@ -457,7 +464,31 @@ function dedupeFinalLabels(tracks: SubtitleTrack[]): SubtitleTrack[] {
 }
 
 function isTechnicalLabel(value: string): boolean {
-  return /^t\d+(?:\s+\d+)?$/i.test(value.trim());
+  const normalized = value.trim();
+  return (
+    /^t\d+(?:\s+\d+)?$/i.test(normalized) ||
+    /^[{]?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}[}]?$/i.test(normalized)
+  );
+}
+
+function isLanguageLabel(label: string, language: string): boolean {
+  if (!isLanguageCode(label)) {
+    return false;
+  }
+
+  return canonicalLanguage(label) === canonicalLanguage(language);
+}
+
+function isLanguageCode(value: string): boolean {
+  return /^[a-z]{2,3}(?:[-_][a-z0-9]{2,8})*$/i.test(value.trim()) && !isTechnicalLabel(value);
+}
+
+function isEmptySubtitlePlaceholderUrl(url: string): boolean {
+  try {
+    return /(?:^|\/)empty-dash-subs\.vtt$/i.test(new URL(url).pathname);
+  } catch {
+    return /(?:^|\/)empty-dash-subs\.vtt(?:[?#]|$)/i.test(url);
+  }
 }
 
 function canonicalLanguage(language: string): string {

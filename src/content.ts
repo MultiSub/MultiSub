@@ -5,6 +5,8 @@ import {
   sanitizeSubtitleSettings,
   type SubtitleSettings,
 } from './settings';
+import { didSubtitleTrackChange, shouldUsePluginPrimary } from './subtitle-state';
+import { trackForNativeSubtitleLabel as matchNativeSubtitleTrack, tracksWithNativeLabels } from './track-matching';
 
 interface StoredSelection {
   secondaryTrackId?: string | null;
@@ -97,6 +99,18 @@ function installMessageListener(): void {
 
     switch (event.data.type) {
       case 'tracks':
+        if (
+          primaryTrackId !== null &&
+          didSubtitleTrackChange(
+            tracks.find((track) => track.id === primaryTrackId),
+            event.data.tracks.find((track) => track.id === primaryTrackId),
+          )
+        ) {
+          primaryCues = [];
+          updateNativeCaptionVisibility();
+          applyOverlaySettings();
+          clearPrimaryOverlay();
+        }
         tracks = event.data.tracks;
         void restoreSelectionFromStorage();
         syncPrimaryTrackFromNative();
@@ -109,6 +123,8 @@ function installMessageListener(): void {
       case 'cues':
         if (event.data.slot === 'primary' && event.data.trackId === primaryTrackId) {
           primaryCues = event.data.cues;
+          updateNativeCaptionVisibility();
+          applyOverlaySettings();
           clearPrimaryOverlay();
           syncSubtitleToVideo();
           publishDebugSnapshot();
@@ -239,106 +255,6 @@ function nativeSubtitleLabels(): string[] {
     .filter((label) => label !== '' && !/^off$/i.test(label));
 }
 
-function tracksWithNativeLabels(
-  sourceTracks: SubtitleTrack[],
-  nativeLabels: string[],
-): Array<SubtitleTrack & { displayLabel: string; nativeOrder: number }> {
-  const nativeByLanguage = new Map<string, { label: string; order: number }>();
-
-  nativeLabels.forEach((label, order) => {
-    const key = labelLanguageKey(label);
-    if (key !== undefined && !nativeByLanguage.has(key)) {
-      nativeByLanguage.set(key, { label, order });
-    }
-  });
-
-  const mappedTracks = sourceTracks
-    .map((track, fallbackOrder) => {
-      const native = nativeByLanguage.get(trackLanguageKey(track.language));
-      const fallbackLabel = simplifiedTrackLabel(track);
-      return {
-        ...track,
-        displayLabel:
-          native !== undefined && shouldUseNativeDisplayLabel(track, native.label) ? native.label : fallbackLabel,
-        nativeOrder: native?.order ?? nativeLabels.length + fallbackOrder,
-      };
-    })
-    .sort((left, right) => left.nativeOrder - right.nativeOrder || left.displayLabel.localeCompare(right.displayLabel));
-
-  return dedupeDisplayLabels(mappedTracks);
-}
-
-function shouldUseNativeDisplayLabel(track: SubtitleTrack, nativeLabel: string): boolean {
-  const languageKey = trackLanguageKey(track.language);
-  if (languageKey !== 'en') {
-    return true;
-  }
-
-  const nativeIsClosedCaption = /\b(?:cc|sdh)\b/i.test(nativeLabel);
-  if (!nativeIsClosedCaption) {
-    return true;
-  }
-
-  return /\b(?:cc|sdh)\b/i.test(track.label);
-}
-
-function dedupeDisplayLabels<T extends SubtitleTrack & { displayLabel: string; nativeOrder: number }>(tracksToDedupe: T[]): T[] {
-  const labelCounts = new Map<string, number>();
-  return tracksToDedupe.map((track) => {
-    const count = labelCounts.get(track.displayLabel) ?? 0;
-    labelCounts.set(track.displayLabel, count + 1);
-    return count === 0 ? track : { ...track, displayLabel: `${track.displayLabel} ${count + 1}` };
-  });
-}
-
-function simplifiedTrackLabel(track: SubtitleTrack): string {
-  const key = trackLanguageKey(track.language);
-  if (key === 'zh-Hans') {
-    return 'Chinese (Simplified)';
-  }
-  if (key === 'zh-Hant') {
-    return 'Chinese (Traditional)';
-  }
-  if (key === 'en') {
-    return /^american english$/i.test(track.label) ? 'English' : track.label;
-  }
-  return track.label.replace(/\s+\((?:Malaysia|Singapore|Taiwan|United States)\)$/i, '');
-}
-
-function labelLanguageKey(label: string): string | undefined {
-  if (/chinese.*simplified/i.test(label)) {
-    return 'zh-Hans';
-  }
-  if (/chinese.*traditional/i.test(label)) {
-    return 'zh-Hant';
-  }
-  if (/english/i.test(label)) {
-    return 'en';
-  }
-  if (/indonesian/i.test(label)) {
-    return 'id';
-  }
-  if (/malay/i.test(label)) {
-    return 'ms';
-  }
-  if (/thai/i.test(label)) {
-    return 'th';
-  }
-
-  return undefined;
-}
-
-function trackLanguageKey(language: string): string {
-  const normalized = language.toLowerCase();
-  if (normalized.startsWith('zh-hans') || normalized === 'zh-cn' || normalized === 'zh-sg') {
-    return 'zh-Hans';
-  }
-  if (normalized.startsWith('zh-hant') || normalized === 'zh-tw' || normalized === 'zh-hk') {
-    return 'zh-Hant';
-  }
-  return normalized.split('-')[0];
-}
-
 function createOptionButton(label: string, checked: boolean, onSelect: () => void): HTMLButtonElement {
   const button = document.createElement('button');
   button.type = 'button';
@@ -451,24 +367,7 @@ function nativeSelectedSubtitleLabel(): string | null | undefined {
 }
 
 function trackForNativeSubtitleLabel(nativeLabel: string): SubtitleTrack | undefined {
-  const nativeOptions = nativeSubtitleLabels();
-  const displayTracks = tracksWithNativeLabels(tracks, nativeOptions);
-  const exactMatch = displayTracks.find((track) => track.displayLabel === nativeLabel);
-  if (exactMatch !== undefined) {
-    return exactMatch;
-  }
-
-  const languageKey = labelLanguageKey(nativeLabel);
-  if (languageKey === undefined) {
-    return undefined;
-  }
-
-  const sameLanguageTracks = tracks.filter((track) => trackLanguageKey(track.language) === languageKey);
-  const nativeWantsClosedCaptions = /\b(?:cc|sdh)\b/i.test(nativeLabel);
-  return (
-    sameLanguageTracks.find((track) => nativeWantsClosedCaptions && /\b(?:cc|sdh)\b/i.test(track.label)) ??
-    sameLanguageTracks[0]
-  );
+  return matchNativeSubtitleTrack(tracks, nativeLabel);
 }
 
 function updatePrimaryModeState(): void {
@@ -486,7 +385,7 @@ function primaryPluginModeEnabled(): boolean {
 
 function updateNativeCaptionVisibility(): void {
   document.documentElement.dataset.hboDualSubPrimaryMode =
-    primaryPluginModeEnabled() && primaryTrackId !== null ? 'plugin' : 'native';
+    shouldUsePluginPrimary(subtitleSettings.primarySubtitleMode, primaryTrackId, primaryCues) ? 'plugin' : 'native';
 }
 
 function persistSelection(selection: StoredSelection): void {
@@ -899,8 +798,7 @@ function primarySubtitleTextScale(): number {
 
 function shouldStackLowerSubtitles(): boolean {
   return (
-    primaryPluginModeEnabled() &&
-    primaryTrackId !== null &&
+    shouldUsePluginPrimary(subtitleSettings.primarySubtitleMode, primaryTrackId, primaryCues) &&
     selectedTrackId !== null &&
     subtitleSettings.secondarySubtitlePlacement === 'bottom'
   );

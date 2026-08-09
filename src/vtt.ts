@@ -335,7 +335,7 @@ function cleanCueText(text: string): string {
       .replace(/<\/?[^>]+>/g, '')
       .replace(/[ \t]+\n/g, '\n')
       .trim(),
-  );
+  ).trim();
 }
 
 function decodeHtmlEntities(text: string): string {
