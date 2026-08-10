@@ -17,7 +17,7 @@ This processing happens locally in the browser. The developer does not receive, 
 
 ## Data stored locally
 
-Each extension uses its own `chrome.storage.local` area to remember the selected secondary subtitle language or track and display preferences such as rendering mode, placement, size, outline, opacity, color, and vertical position. These settings remain on the user's device until the user clears extension data or uninstalls that extension.
+Each extension uses its own `chrome.storage.local` area to remember the selected secondary subtitle language or track and display preferences such as rendering mode, placement, font family, size, outline, opacity, color, and vertical position. These settings remain on the user's device until the user clears extension data or uninstalls that extension.
 
 Playback manifests, subtitle cues, player state, and diagnostic data are kept only in the active page session and are discarded when the page is refreshed or closed. Local diagnostic snapshots may be exposed at `#hbo-dual-sub-debug` or `#netflix-dual-sub-debug` to help troubleshoot synchronization. They can contain current subtitle text, timing, and track metadata. The HBO snapshot may also contain playback or subtitle-resource URLs. Signed Netflix subtitle URLs are not written to storage or the Netflix snapshot. Neither snapshot is transmitted to the developer.
 

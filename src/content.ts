@@ -3,6 +3,7 @@ import {
   DEFAULT_SUBTITLE_SETTINGS,
   SETTINGS_STORAGE_KEY,
   sanitizeSubtitleSettings,
+  subtitleFontFamilyCss,
   type SubtitleSettings,
 } from './settings';
 import { didSubtitleTrackChange, shouldUsePluginPrimary } from './subtitle-state';
@@ -802,6 +803,7 @@ function publishDebugSnapshot(): void {
     nativeSubtitleText: nativeSubtitleText(),
     primarySubtitleMode: subtitleSettings.primarySubtitleMode,
     secondarySubtitlePlacement: subtitleSettings.secondarySubtitlePlacement,
+    subtitleFontFamily: subtitleSettings.subtitleFontFamily,
     primaryOverlayText: primaryOverlay?.textContent ?? '',
     primaryTrack: primaryTrack === undefined ? null : debugTrack(primaryTrack),
     primaryTrackId,
@@ -1076,6 +1078,7 @@ function applyTextOverlaySettings(
   element.style.color = subtitleSettings.secondaryTextColor;
   element.style.opacity = subtitleSettings.secondaryTextOpacity.toFixed(2);
   element.style.fontSize = `clamp(${Math.round(20 * textScale)}px, ${(2.1 * textScale).toFixed(2)}vw, ${Math.round(36 * textScale)}px)`;
+  element.style.fontFamily = subtitleFontFamilyCss(subtitleSettings.subtitleFontFamily);
   if (position.edge === 'top') {
     element.style.top = `clamp(56px, ${position.vh.toFixed(1)}vh, 220px)`;
     element.style.bottom = 'auto';

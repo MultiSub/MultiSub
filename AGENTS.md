@@ -98,6 +98,7 @@ Always mute the Netflix page before playback testing. Netflix may replace its `<
 - Plugin-rendered primary subtitles stay in the lower subtitle area.
 - When both plugin-rendered subtitles are in the lower area, the primary subtitle is larger and above the second subtitle.
 - The second subtitle can also be placed at the top.
+- The sans-serif/serif choice applies to extension-rendered subtitles, including the primary track only in `Matched style`; never restyle the site's native primary subtitle.
 - Overlay elements must be moved into the active fullscreen element so subtitles remain visible in fullscreen mode.
 - Subtitle text must be rendered with `textContent`, not injected HTML.
 - Only the selected second subtitle track should be loaded; avoid eager-loading every language.

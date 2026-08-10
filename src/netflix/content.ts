@@ -11,6 +11,7 @@ import {
   NETFLIX_SELECTION_STORAGE_KEY,
   NETFLIX_SETTINGS_STORAGE_KEY,
   sanitizeSubtitleSettings,
+  subtitleFontFamilyCss,
   type SubtitleSettings,
 } from './settings';
 import {
@@ -804,6 +805,7 @@ function applyTextOverlaySettings(
 ): void {
   element.style.color = subtitleSettings.secondaryTextColor;
   element.style.opacity = subtitleSettings.secondaryTextOpacity.toFixed(2);
+  element.style.fontFamily = subtitleFontFamilyCss(subtitleSettings.subtitleFontFamily);
   element.style.fontSize = `clamp(${Math.round(20 * textScale)}px, ${(2.1 * textScale).toFixed(2)}vw, ${Math.round(36 * textScale)}px)`;
   if (position.edge === 'top') {
     element.style.top = `clamp(56px, ${position.vh.toFixed(1)}vh, 220px)`;
@@ -874,6 +876,7 @@ function publishDebugSnapshot(): void {
     nativeSubtitleText: nativeSubtitleText(),
     primarySubtitleMode: subtitleSettings.primarySubtitleMode,
     secondarySubtitlePlacement: subtitleSettings.secondarySubtitlePlacement,
+    subtitleFontFamily: subtitleSettings.subtitleFontFamily,
     currentNativeTrackId,
     primaryTrackId,
     primaryCueCount: primaryCues.length,

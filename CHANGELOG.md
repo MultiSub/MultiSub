@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added IMSC/TTML parsing for tick, clock, frame, and offset times, including line breaks and ruby handling.
 - Added Netflix popup and native-menu second-track selection, matched-style rendering, fullscreen overlays, and local debug snapshots.
 - Added separate `dist/hbo` and `dist/netflix` build artifacts and CI packages.
+- Added a sans-serif or serif font choice for extension-rendered subtitles in both popups.
 
 ### Changed
 

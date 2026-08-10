@@ -16,6 +16,10 @@ function readManifest(relativePath: string): ExtensionManifest {
   return JSON.parse(readFileSync(new URL(relativePath, import.meta.url), 'utf8')) as ExtensionManifest;
 }
 
+function readText(relativePath: string): string {
+  return readFileSync(new URL(relativePath, import.meta.url), 'utf8');
+}
+
 describe('independent extension packaging', () => {
   const hbo = readManifest('../public/manifest.json');
   const netflix = readManifest('../netflix-public/manifest.json');
@@ -40,5 +44,12 @@ describe('independent extension packaging', () => {
         expect.objectContaining({ js: ['content.js'], world: 'ISOLATED' }),
       ]),
     );
+  });
+
+  it('offers the same font-family choices in both popups', () => {
+    for (const popup of [readText('../public/popup.html'), readText('../netflix-public/popup.html')]) {
+      expect(popup).toContain('data-font-family="sans-serif"');
+      expect(popup).toContain('data-font-family="serif"');
+    }
   });
 });

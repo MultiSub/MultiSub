@@ -18,7 +18,7 @@ Each extension has its own manifest, storage, popup, content scripts, and build 
 - Remembers the preferred second language and distinguishes regular, CC/SDH, and forced tracks.
 - Supports top or bottom placement for the second subtitle.
 - Includes a matched-style mode that renders the selected main subtitle through the extension too.
-- Provides local controls for size, outline, opacity, color, and vertical position.
+- Provides local controls for sans-serif or serif font, size, outline, opacity, color, and vertical position.
 - Keeps overlays inside the active fullscreen player.
 - Publishes a local debug snapshot for subtitle timing investigations.
 
@@ -95,6 +95,8 @@ dist/netflix/
 4. Select the second official track from the Netflix extension popup or its injected `Secondary Subtitles` section when the Netflix menu is available.
 
 Both popups control only their own extension because Chrome gives the two packages separate storage areas. The Netflix popup queries and changes only the active playback tab; its saved language preference is reused when a future title opens.
+
+The font choice applies to subtitles rendered by the extension: always the second subtitle, and the main subtitle when `Matched style` is enabled. A native HBO Max or Netflix main subtitle keeps the streaming service's own font.
 
 ## Debugging Subtitle Sync
 

@@ -126,6 +126,14 @@ h2 {
   color: #fff;
 }
 
+.choice-control {
+  display: grid;
+  gap: 8px;
+  color: #edf2f7;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
 .control-row {
   display: flex;
   align-items: center;

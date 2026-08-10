@@ -2,6 +2,7 @@ export const SETTINGS_STORAGE_KEY = 'hboDualSubSettings';
 
 export type PrimarySubtitleMode = 'native' | 'plugin';
 export type SecondarySubtitlePlacement = 'top' | 'bottom';
+export type SubtitleFontFamily = 'sans-serif' | 'serif';
 
 export interface SubtitleSettings {
   primarySubtitleMode: PrimarySubtitleMode;
@@ -10,6 +11,7 @@ export interface SubtitleSettings {
   secondaryTextStroke: number;
   secondaryTextOpacity: number;
   secondaryTextColor: string;
+  subtitleFontFamily: SubtitleFontFamily;
   secondaryBottomVh: number;
 }
 
@@ -20,6 +22,7 @@ export const DEFAULT_SUBTITLE_SETTINGS: SubtitleSettings = {
   secondaryTextStroke: 2,
   secondaryTextOpacity: 1,
   secondaryTextColor: '#ffffff',
+  subtitleFontFamily: 'sans-serif',
   secondaryBottomVh: 13,
 };
 
@@ -38,8 +41,21 @@ export function sanitizeSubtitleSettings(value: unknown): SubtitleSettings {
     secondaryTextStroke: clampNumber(input.secondaryTextStroke, 0, 4, DEFAULT_SUBTITLE_SETTINGS.secondaryTextStroke),
     secondaryTextOpacity: clampNumber(input.secondaryTextOpacity, 0.35, 1, DEFAULT_SUBTITLE_SETTINGS.secondaryTextOpacity),
     secondaryTextColor: sanitizeColor(input.secondaryTextColor, DEFAULT_SUBTITLE_SETTINGS.secondaryTextColor),
+    subtitleFontFamily: isSubtitleFontFamily(input.subtitleFontFamily)
+      ? input.subtitleFontFamily
+      : DEFAULT_SUBTITLE_SETTINGS.subtitleFontFamily,
     secondaryBottomVh: clampNumber(input.secondaryBottomVh, 7, 24, DEFAULT_SUBTITLE_SETTINGS.secondaryBottomVh),
   };
+}
+
+export function isSubtitleFontFamily(value: unknown): value is SubtitleFontFamily {
+  return value === 'sans-serif' || value === 'serif';
+}
+
+export function subtitleFontFamilyCss(fontFamily: SubtitleFontFamily): string {
+  return fontFamily === 'serif'
+    ? 'Georgia, "Times New Roman", serif'
+    : 'Arial, Helvetica, sans-serif';
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

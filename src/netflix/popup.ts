@@ -2,7 +2,9 @@ import {
   DEFAULT_SUBTITLE_SETTINGS,
   NETFLIX_SELECTION_STORAGE_KEY,
   NETFLIX_SETTINGS_STORAGE_KEY,
+  isSubtitleFontFamily,
   sanitizeSubtitleSettings,
+  subtitleFontFamilyCss,
   type PrimarySubtitleMode,
   type SecondarySubtitlePlacement,
   type SubtitleSettings,
@@ -118,11 +120,28 @@ function bindControls(): void {
     });
   }
 
+  for (const button of Array.from(document.querySelectorAll<HTMLButtonElement>('[data-font-family]'))) {
+    button.addEventListener('click', () => {
+      const fontFamily = button.dataset.fontFamily;
+      if (!isSubtitleFontFamily(fontFamily)) {
+        return;
+      }
+      settings = sanitizeSubtitleSettings({
+        ...settings,
+        subtitleFontFamily: fontFamily,
+      });
+      renderSettings();
+      void saveSettings();
+    });
+  }
+
   resetButton().addEventListener('click', () => {
     settings = DEFAULT_SUBTITLE_SETTINGS;
     renderSettings();
     void saveSettings();
   });
+
+  bindSegmentedRadioKeyboard();
 }
 
 function installStorageListener(): void {
@@ -242,6 +261,10 @@ function renderSettings(): void {
       String(button.dataset.secondaryPlacement === settings.secondarySubtitlePlacement),
     );
   }
+  for (const button of Array.from(document.querySelectorAll<HTMLButtonElement>('[data-font-family]'))) {
+    button.setAttribute('aria-checked', String(button.dataset.fontFamily === settings.subtitleFontFamily));
+  }
+  syncRadioTabStops();
 }
 
 function renderPreview(): void {
@@ -252,7 +275,53 @@ function renderPreview(): void {
   preview.style.color = settings.secondaryTextColor;
   preview.style.opacity = settings.secondaryTextOpacity.toFixed(2);
   preview.style.fontSize = `${Math.round(18 * settings.secondaryTextScale)}px`;
+  preview.style.fontFamily = subtitleFontFamilyCss(settings.subtitleFontFamily);
   preview.style.webkitTextStrokeWidth = `${settings.secondaryTextStroke.toFixed(2)}px`;
+}
+
+function bindSegmentedRadioKeyboard(): void {
+  for (const group of document.querySelectorAll<HTMLElement>('[role="radiogroup"]')) {
+    group.addEventListener('keydown', (event) => {
+      if (!(event.target instanceof HTMLButtonElement) || event.target.getAttribute('role') !== 'radio') {
+        return;
+      }
+
+      const buttons = Array.from(group.querySelectorAll<HTMLButtonElement>('button[role="radio"]'));
+      const currentIndex = buttons.indexOf(event.target);
+      if (currentIndex < 0 || buttons.length === 0) {
+        return;
+      }
+
+      let nextIndex: number | undefined;
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+      } else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        nextIndex = (currentIndex + 1) % buttons.length;
+      } else if (event.key === 'Home') {
+        nextIndex = 0;
+      } else if (event.key === 'End') {
+        nextIndex = buttons.length - 1;
+      }
+
+      if (nextIndex === undefined) {
+        return;
+      }
+      event.preventDefault();
+      const nextButton = buttons[nextIndex];
+      nextButton.click();
+      nextButton.focus();
+    });
+  }
+}
+
+function syncRadioTabStops(): void {
+  for (const group of document.querySelectorAll<HTMLElement>('[role="radiogroup"]')) {
+    const buttons = Array.from(group.querySelectorAll<HTMLButtonElement>('button[role="radio"]'));
+    const checkedButton = buttons.find((button) => button.getAttribute('aria-checked') === 'true') ?? buttons[0];
+    for (const button of buttons) {
+      button.tabIndex = button === checkedButton ? 0 : -1;
+    }
+  }
 }
 
 async function saveSettings(): Promise<void> {
