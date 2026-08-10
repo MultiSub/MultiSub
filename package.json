@@ -1,10 +1,13 @@
 {
-  "name": "multisubs-for-hbo-max",
+  "name": "multisub-browser-extensions",
   "version": "0.1.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build --config vite.content.config.ts && vite build --config vite.page-hook.config.ts && vite build --config vite.popup.config.ts",
+    "build": "npm run clean && npm run build:hbo && npm run build:netflix",
+    "build:hbo": "vite build --config vite.content.config.ts && vite build --config vite.page-hook.config.ts && vite build --config vite.popup.config.ts",
+    "build:netflix": "vite build --config vite.netflix-content.config.ts && vite build --config vite.netflix-page-hook.config.ts && vite build --config vite.netflix-popup.config.ts",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

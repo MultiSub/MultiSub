@@ -1,0 +1,176 @@
+.netflix-dual-sub-overlay {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: clamp(88px, 12vh, 154px);
+  z-index: 2147483646;
+  box-sizing: border-box;
+  width: min(92vw, 1180px);
+  max-height: 28vh;
+  padding: 0 2vw;
+  border: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: translateX(-50%);
+  pointer-events: none;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(20px, 2.1vw, 36px);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: 0;
+  text-align: center;
+  -webkit-text-stroke: clamp(1px, 0.08em, 2px) rgb(0 0 0 / 88%);
+  paint-order: stroke fill;
+  text-shadow:
+    rgb(0 0 0 / 88%) 0 1px 1px,
+    rgb(0 0 0 / 76%) 0 0 4px,
+    rgb(0 0 0 / 68%) 0 2px 6px;
+  white-space: pre-wrap;
+}
+
+.netflix-dual-sub-overlay:empty {
+  display: none;
+}
+
+.netflix-dual-sub-primary-overlay {
+  z-index: 2147483647;
+  font-weight: 800;
+}
+
+.netflix-dual-sub-stack {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(88px, 12vh, 154px);
+  z-index: 2147483647;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.6vh, 10px);
+  width: min(92vw, 1180px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.netflix-dual-sub-stack > .netflix-dual-sub-overlay {
+  position: static;
+  left: auto;
+  right: auto;
+  top: auto !important;
+  bottom: auto !important;
+  width: 100%;
+  max-height: none;
+  transform: none;
+}
+
+html[data-netflix-dual-sub-primary-mode='plugin'] .player-timedtext,
+html[data-netflix-dual-sub-primary-mode='plugin'] .player-timedtext-text-container,
+html[data-netflix-dual-sub-primary-mode='plugin'] [data-uia='player-subtitle'] {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+html[data-netflix-dual-sub-primary-mode='plugin'] video::cue {
+  color: transparent;
+  background-color: transparent;
+  text-shadow: none;
+}
+
+/* Netflix positions the two-column popover from its left edge. Once the
+   official secondary-subtitle column is appended, pin that menu-only popover
+   to the right instead so all three columns expand into the viewport. */
+.netflix-dual-sub-menu-popover-anchor[data-netflix-dual-sub-menu-popover-anchor='true'] {
+  left: auto !important;
+  right: 0 !important;
+}
+
+.netflix-dual-sub-menu-column {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+
+.netflix-dual-sub-menu-column > * {
+  flex-shrink: 0 !important;
+}
+
+.netflix-dual-sub-menu {
+  position: relative;
+  z-index: 5;
+  flex: 0 0 auto;
+  margin-top: 0;
+  color: #fff;
+  font-family: inherit;
+  pointer-events: auto;
+}
+
+.netflix-dual-sub-menu__heading {
+  display: block;
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: var(--netflix-dual-sub-heading-font-size, 18px);
+  font-weight: 700;
+  line-height: var(--netflix-dual-sub-heading-line-height, 1.35);
+  letter-spacing: 0;
+}
+
+.netflix-dual-sub-menu__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.netflix-dual-sub-menu__option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: var(--netflix-dual-sub-option-height, 46px);
+  border: 0;
+  margin: 0;
+  padding: 0 0 0 32px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: var(--netflix-dual-sub-option-font-size, inherit);
+  line-height: var(--netflix-dual-sub-option-line-height, inherit);
+  letter-spacing: 0;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.netflix-dual-sub-menu__option:hover,
+.netflix-dual-sub-menu__option:focus-visible {
+  outline: none;
+  color: #fff;
+  background: rgb(255 255 255 / 10%);
+}
+
+.netflix-dual-sub-menu__option[aria-checked='true']::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  width: 12px;
+  height: 7px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg) translateY(-1px);
+}
+
+@media (max-width: 720px) {
+  .netflix-dual-sub-overlay {
+    bottom: clamp(76px, 11vh, 126px);
+    width: min(96vw, 640px);
+    max-height: 32vh;
+    font-size: clamp(18px, 5vw, 28px);
+  }
+
+  .netflix-dual-sub-stack {
+    bottom: clamp(76px, 11vh, 126px);
+    width: min(96vw, 640px);
+  }
+}

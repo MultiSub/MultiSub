@@ -1,25 +1,30 @@
-# MultiSub for HBO Max
+# MultiSub
 
-Free and open-source dual subtitles for HBO Max.
+Free and open-source dual-subtitle extensions for HBO Max and Netflix.
 
-MultiSub for HBO Max adds a second subtitle track to the HBO Max player, using the subtitle languages that are already available for the current title. It is built for people who watch with two languages at once: language learners, bilingual households, and anyone who wants original-language subtitles and another available language track on screen together.
+This repository builds two independent Chrome Manifest V3 extensions:
+
+- **MultiSub for HBO Max** adds a second official subtitle track to HBO Max.
+- **MultiSub for Netflix** adds a second official subtitle track to Netflix.
+
+Each extension has its own manifest, storage, popup, content scripts, and build artifact. Neither extension generates or translates subtitles, searches external subtitle services, or unlocks tracks outside the active playback session.
 
 ## Features
 
-- Adds a `Secondary Subtitles` section directly inside HBO Max's native subtitles menu.
-- Uses official subtitle tracks from the current video manifest.
-- Keeps HBO's original subtitle selector working.
+- Displays two official subtitle tracks at once.
+- Keeps the streaming service's native subtitle selector working.
+- Presents the added selector as a third menu column beside native audio and subtitle choices.
 - Loads only the selected second subtitle track.
-- Supports a matched-style mode where the extension renders both the main and second subtitles for a consistent look.
-- Lets the second subtitle appear at the top of the video or below the main subtitle in the lower subtitle area.
-- Keeps plugin-rendered main subtitles larger and above the second subtitle when both are shown at the bottom.
-- Restores the last selected second subtitle when a video opens.
-- Provides a toolbar popup for text size, outline, brightness, position, color, main subtitle mode, and second subtitle placement.
-- Includes live debug snapshots for investigating subtitle sync issues.
+- Remembers the preferred second language and distinguishes regular, CC/SDH, and forced tracks.
+- Supports top or bottom placement for the second subtitle.
+- Includes a matched-style mode that renders the selected main subtitle through the extension too.
+- Provides local controls for size, outline, opacity, color, and vertical position.
+- Keeps overlays inside the active fullscreen player.
+- Publishes a local debug snapshot for subtitle timing investigations.
 
 ## Screenshots
 
-The images below are neutral mock screenshots for the repository documentation. The Chrome Web Store listing uses real playback and extension UI captures.
+The images below are neutral mock screenshots for the repository documentation. Chrome Web Store listings use real playback and extension UI captures.
 
 ![Dual subtitle overlay mock screenshot](docs/screenshots/dual-subtitles.svg)
 
@@ -27,74 +32,102 @@ The images below are neutral mock screenshots for the repository documentation. 
 
 ## How It Works
 
-HBO Max delivers video through DASH manifests. Many titles include multiple WebVTT subtitle tracks in the manifest. This extension injects a page hook at `document_start`, watches for the `.mpd` manifest, extracts the available subtitle tracks, and then loads the selected subtitle segments on demand.
+### HBO Max
 
-The content script renders subtitles with `textContent`, not HTML injection. It does not bundle subtitle files and does not fetch subtitle data from outside the HBO Max playback session.
+HBO Max delivers playback through DASH manifests. The HBO extension watches for `.mpd` manifests, extracts segmented WebVTT tracks, and downloads only the selected track. HBO-specific presentation, media, and WebVTT timing data are normalized before rendering.
+
+### Netflix
+
+The Netflix extension runs a small page-world hook at `document_start`. It uses two compatible discovery paths:
+
+1. It observes Netflix playback manifests when their text-track metadata is visible and caches them by `movieId`, so homepage preloading cannot replace the active title's tracks.
+2. It reads the active Netflix player's official timed-text list and resolves the selected track from the current playback session when licensed manifest contents are not exposed.
+
+Netflix IMSC/TTML and WebVTT text tracks are parsed locally. Signed subtitle delivery URLs stay in the active page and are never written to extension storage or the debug snapshot. Image-based subtitle tracks are currently omitted instead of being shown as unusable choices.
 
 ## Availability
 
-MultiSub is available from the [Chrome Web Store](https://chromewebstore.google.com/detail/aibamjmjbaflpgokbdcindilmnngpbpg). The source code remains available here for review, testing, and contribution.
+MultiSub for HBO Max is available from the [Chrome Web Store](https://chromewebstore.google.com/detail/aibamjmjbaflpgokbdcindilmnngpbpg). The Netflix extension is currently available from this repository as the separate `dist/netflix` build. Both remain open source for review, testing, and contribution.
+
+## Build
+
+The recommended environment is WSL Ubuntu with the project-local Node 22 toolchain:
+
+```bash
+bash scripts/setup-node.sh
+export PATH="$PWD/.tools/node/bin:$PATH"
+npm install
+```
+
+Run the full verification flow:
+
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+Build either extension independently with `npm run build:hbo` or `npm run build:netflix`.
+
+The unpacked extension directories are:
+
+```text
+dist/hbo/
+dist/netflix/
+```
+
+`dist/` is generated and should not be committed. GitHub Actions packages the two directories as separate ZIP artifacts with each manifest at the archive root.
 
 ## Usage
 
-1. Open a supported HBO Max video.
-2. Open HBO Max's audio/subtitles menu.
-3. Choose the normal HBO subtitle as usual.
-4. In `Secondary Subtitles`, choose a second language.
-5. Use the extension toolbar popup to tune subtitle style and placement.
+### HBO Max
 
-For the most consistent visual result, set `Main Subtitle` to `Matched style` in the popup. In that mode, HBO's selected subtitle remains the main subtitle choice, but the extension renders it with the same style system as the second subtitle.
+1. Load `dist/hbo` as an unpacked extension.
+2. Open a supported HBO Max video and its audio/subtitles menu.
+3. Choose the normal HBO subtitle as usual.
+4. Choose a second track in the added `Secondary Subtitles` section.
+
+### Netflix
+
+1. Load `dist/netflix` as a separate unpacked extension.
+2. Refresh Netflix so the page-world hook runs from `document_start`.
+3. Open a video.
+4. Select the second official track from the Netflix extension popup or its injected `Secondary Subtitles` section when the Netflix menu is available.
+
+Both popups control only their own extension because Chrome gives the two packages separate storage areas. The Netflix popup queries and changes only the active playback tab; its saved language preference is reused when a future title opens.
 
 ## Debugging Subtitle Sync
 
-The extension writes a live JSON snapshot into the HBO page at `#hbo-dual-sub-debug`. With the extension running on a playback page, run this in DevTools Console:
+With the relevant extension active on a playback page, inspect its JSON snapshot in DevTools:
 
 ```js
 JSON.parse(document.querySelector('#hbo-dual-sub-debug').textContent)
+JSON.parse(document.querySelector('#netflix-dual-sub-debug').textContent)
 ```
 
-The snapshot includes:
-
-- current `video.currentTime`
-- HBO's visible native subtitle text
-- plugin-rendered primary and secondary subtitle text
-- selected tracks
-- active and nearby cues
-- available manifest tracks
-- manifest/video timeline offset metadata
-
-When subtitles do not match, capture this snapshot at the bad frame. It usually shows whether the problem is a wrong track, wrong cue time, stale cues after seeking, or a CC/non-CC track mismatch.
+Snapshots include the current video time, native and extension-rendered subtitle text, selected tracks, cue counts, and active cues. The Netflix snapshot also reports whether the active video is muted, which is useful during test runs.
 
 ## Current Scope
 
-- Target site: `https://play.hbomax.com/*`
-- Extension platform: Chrome Manifest V3
-- Subtitle source: HBO Max DASH/MPD manifests
-- Subtitle format: segmented WebVTT
-- No subtitle generation, external subtitle search, cross-region subtitle loading, or AI translation
+- Targets: `https://play.hbomax.com/*` and `https://www.netflix.com/*`
+- Platform: Chrome Manifest V3
+- HBO formats: DASH/MPD with segmented WebVTT
+- Netflix formats: official IMSC/TTML and WebVTT text tracks
+- No AI translation, subtitle generation, external subtitle search, telemetry, or cross-region track loading
+
+## References
+
+Netflix compatibility references the actively maintained, MIT-licensed [gmertes/NflxMultiSubs](https://github.com/gmertes/NflxMultiSubs), particularly its early `document_start` hook, per-title manifest cache, and current/legacy Netflix field aliases. MultiSub keeps an independent MV3 package and uses its own page/content bridge, text-track parsers, renderer, settings, tests, and player-session fallback.
+
+The HBO Max subtitle-discovery path retains the established DASH-manifest interception approach used by projects such as [asbplayer](https://github.com/killergerbah/asbplayer).
 
 ## Contributing
 
-Issues and pull requests are welcome. The most useful reports include:
-
-- HBO Max title name
-- selected main subtitle language
-- selected second subtitle language
-- whether `Matched style` is enabled
-- whether the issue happens after seeking
-- a `#hbo-dual-sub-debug` snapshot when sync looks wrong
-
-Development notes and local verification commands live in [AGENTS.md](AGENTS.md). Release history follows Keep a Changelog in [CHANGELOG.md](CHANGELOG.md).
-
-## Inspiration
-
-The interaction model is inspired by [SeeingDouble](https://github.com/jennimao/seeingdouble), especially its native-player subtitle menu integration and toolbar settings panel. SeeingDouble is itself a fork of [gmertes/NflxMultiSubs](https://github.com/gmertes/NflxMultiSubs), which is a maintained fork of the original [dannvix/NflxMultiSubs](https://github.com/dannvix/NflxMultiSubs).
-
-The HBO Max subtitle discovery path follows the same broad technical idea used by asbplayer for HBO Max: intercept the DASH `.mpd` manifest and extract available subtitle playlists.
+Issues and pull requests are welcome. Development and browser-test notes live in [AGENTS.md](AGENTS.md), and release history follows [Keep a Changelog](CHANGELOG.md).
 
 ## Disclaimer
 
-This project is not affiliated with, endorsed by, or sponsored by Max, HBO, or Warner Bros. Discovery.
+This project is not affiliated with, endorsed by, or sponsored by Netflix, Max, HBO, Warner Bros. Discovery, or their affiliates.
 
 ## License
 

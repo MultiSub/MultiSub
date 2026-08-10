@@ -103,11 +103,55 @@ video::cue {
   overflow: visible !important;
 }
 
+.hbo-dual-sub-menu-layout {
+  --hbo-dual-sub-native-column-width: 280px;
+  --hbo-dual-sub-native-column-height: 62vh;
+  --hbo-dual-sub-native-column-gap: var(--hbo-dual-sub-measured-column-gap, 24px);
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-columns: repeat(
+    3,
+    minmax(min(var(--hbo-dual-sub-native-column-width), calc(100vw - 32px)), 1fr)
+  ) !important;
+  align-items: start !important;
+  gap: var(--hbo-dual-sub-native-column-gap) !important;
+  width: min(
+    calc(100vw - 32px),
+    calc(
+      var(--hbo-dual-sub-native-column-width) + var(--hbo-dual-sub-native-column-width) +
+        var(--hbo-dual-sub-native-column-width) + var(--hbo-dual-sub-native-column-gap) +
+        var(--hbo-dual-sub-native-column-gap)
+    )
+  ) !important;
+  max-width: calc(100vw - 32px) !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  overscroll-behavior-x: contain;
+  scrollbar-gutter: stable;
+}
+
+.hbo-dual-sub-menu-layout > .hbo-dual-sub-native-column,
+.hbo-dual-sub-menu-layout > .hbo-dual-sub-menu {
+  box-sizing: border-box !important;
+  min-width: min(var(--hbo-dual-sub-native-column-width), calc(100vw - 32px)) !important;
+  max-height: min(var(--hbo-dual-sub-native-column-height), calc(100vh - 128px)) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+
+.hbo-dual-sub-menu-layout > .hbo-dual-sub-menu {
+  padding:
+    var(--hbo-dual-sub-column-padding-top, 0) var(--hbo-dual-sub-column-padding-right, 0)
+    var(--hbo-dual-sub-column-padding-bottom, 0) var(--hbo-dual-sub-column-padding-left, 0);
+}
+
 .hbo-dual-sub-menu {
   position: relative;
   z-index: 5;
   flex: 0 0 auto;
-  margin-top: 0;
+  margin: 0;
   color: #fff;
   font-family: inherit;
   pointer-events: auto;
@@ -118,7 +162,7 @@ video::cue {
   margin: 0 0 12px;
   color: #fff;
   font-size: var(--hbo-dual-sub-heading-font-size, 18px);
-  font-weight: 700;
+  font-weight: var(--hbo-dual-sub-heading-font-weight, 700);
   line-height: var(--hbo-dual-sub-heading-line-height, 1.35);
   letter-spacing: 0;
 }
@@ -139,13 +183,14 @@ video::cue {
   min-height: var(--hbo-dual-sub-option-height, 46px);
   border: 0;
   margin: 0;
-  padding: 0 0 0 32px;
+  padding: 0 0 0 var(--hbo-dual-sub-option-padding-left, 32px);
   background: transparent;
   color: #fff;
   font: inherit;
   font-size: var(--hbo-dual-sub-option-font-size, inherit);
+  font-weight: var(--hbo-dual-sub-option-font-weight, inherit);
   line-height: var(--hbo-dual-sub-option-line-height, inherit);
-  letter-spacing: 0;
+  letter-spacing: var(--hbo-dual-sub-option-letter-spacing, 0);
   text-align: left;
   cursor: pointer;
   pointer-events: auto;
@@ -171,6 +216,25 @@ video::cue {
 }
 
 @media (max-width: 720px) {
+  .hbo-dual-sub-menu-layout {
+    --hbo-dual-sub-native-column-gap: 12px;
+    grid-template-columns: repeat(
+      3,
+      minmax(min(var(--hbo-dual-sub-native-column-width), calc(100vw - 24px)), 1fr)
+    ) !important;
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+  }
+
+  .hbo-dual-sub-menu-layout > .hbo-dual-sub-native-column,
+  .hbo-dual-sub-menu-layout > .hbo-dual-sub-menu {
+    min-width: min(var(--hbo-dual-sub-native-column-width), calc(100vw - 24px)) !important;
+    max-height: min(var(--hbo-dual-sub-native-column-height), calc(100vh - 104px)) !important;
+    scroll-snap-align: start;
+  }
+
   .hbo-dual-sub-overlay {
     bottom: clamp(86px, 12vh, 134px);
     width: min(96vw, 640px);

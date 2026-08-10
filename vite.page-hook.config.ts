@@ -4,7 +4,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   publicDir: false,
   build: {
-    outDir: 'dist',
+    outDir: 'dist/hbo',
     emptyOutDir: false,
     sourcemap: true,
     lib: {

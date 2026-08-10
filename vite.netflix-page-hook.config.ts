@@ -2,16 +2,16 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  publicDir: 'public',
+  publicDir: false,
   build: {
-    outDir: 'dist/hbo',
-    emptyOutDir: true,
+    outDir: 'dist/netflix',
+    emptyOutDir: false,
     sourcemap: true,
     lib: {
-      entry: fileURLToPath(new URL('./src/content.ts', import.meta.url)),
-      name: 'HboDualSubContent',
+      entry: fileURLToPath(new URL('./src/netflix/page-hook.ts', import.meta.url)),
+      name: 'NetflixDualSubPageHook',
       formats: ['iife'],
-      fileName: () => 'content.js',
+      fileName: () => 'page-hook.js',
     },
     rollupOptions: {
       output: {

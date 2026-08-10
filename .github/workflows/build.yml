@@ -1,4 +1,4 @@
-name: Build Extension
+name: Build Extensions
 
 on:
   push:
@@ -34,20 +34,29 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Build extension
+      - name: Build extensions
         run: npm run build
 
-      - name: Validate manifest
-        run: node -e "JSON.parse(require('fs').readFileSync('dist/manifest.json', 'utf8'))"
+      - name: Validate manifests
+        run: node -e "for (const name of ['hbo', 'netflix']) JSON.parse(require('fs').readFileSync('dist/' + name + '/manifest.json', 'utf8'))"
 
-      - name: Package extension artifact
+      - name: Package extension artifacts
         run: |
-          cd dist
-          zip -r ../multisubs-for-hbo-max.zip .
+          cd dist/hbo
+          zip -r ../../multisubs-for-hbo-max.zip .
+          cd ../netflix
+          zip -r ../../multisubs-for-netflix.zip .
 
-      - name: Upload build artifact
+      - name: Upload HBO Max build artifact
         uses: actions/upload-artifact@v4
         with:
           name: multisubs-for-hbo-max
           path: multisubs-for-hbo-max.zip
+          if-no-files-found: error
+
+      - name: Upload Netflix build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: multisubs-for-netflix
+          path: multisubs-for-netflix.zip
           if-no-files-found: error

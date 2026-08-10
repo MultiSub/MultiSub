@@ -13,6 +13,15 @@ interface StoredSelection {
   secondaryLanguage?: string | null;
 }
 
+interface ActiveMenuIntegration {
+  menu: HTMLElement;
+  subtitlesGroup: HTMLElement;
+  subtitlesColumn: HTMLElement;
+  menuLayout: HTMLElement;
+  mode: 'columns' | 'fallback';
+  nativeColumns: HTMLElement[];
+}
+
 const STORAGE_KEYS: (keyof StoredSelection)[] = ['secondaryTrackId', 'secondaryLanguage'];
 const DEBUG_SNAPSHOT_ID = 'hbo-dual-sub-debug';
 const DEBUG_SNAPSHOT_INTERVAL_MS = 250;
@@ -34,6 +43,7 @@ let animationStarted = false;
 let currentCueText = '';
 let currentPrimaryCueText = '';
 let menuRenderQueued = false;
+let activeMenuIntegration: ActiveMenuIntegration | undefined;
 let debugSnapshotElement: HTMLScriptElement | undefined;
 let lastDebugSnapshotAt = 0;
 
@@ -210,51 +220,200 @@ function queueMenuRender(): void {
 function renderMenuIfPresent(): void {
   const subtitlesGroup = findNativeSubtitlesGroup();
   if (subtitlesGroup === undefined) {
+    cleanupMenuIntegration();
     return;
   }
 
   const subtitlesColumn = subtitlesGroup.parentElement;
   if (subtitlesColumn === null) {
+    cleanupMenuIntegration();
     return;
   }
 
-  let menu = document.querySelector<HTMLElement>('[data-hbo-dual-sub-menu]');
-  if (menu === null || !menu.isConnected) {
-    menu = document.createElement('section');
-    menu.dataset.hboDualSubMenu = 'true';
-    menu.className = 'hbo-dual-sub-menu';
+  const menuLayout = subtitlesColumn.parentElement;
+  if (menuLayout === null) {
+    cleanupMenuIntegration();
+    return;
   }
 
-  for (const previousColumn of document.querySelectorAll<HTMLElement>('.hbo-dual-sub-menu-column')) {
-    if (previousColumn !== subtitlesColumn) {
-      previousColumn.classList.remove('hbo-dual-sub-menu-column');
+  const nativeColumns = findReliableNativeMenuColumns(menuLayout, subtitlesColumn, subtitlesGroup);
+  const mode: ActiveMenuIntegration['mode'] = nativeColumns === undefined ? 'fallback' : 'columns';
+
+  if (!matchesActiveMenuIntegration(subtitlesGroup, subtitlesColumn, menuLayout, mode, nativeColumns ?? [])) {
+    cleanupMenuIntegration();
+    const menu = createSecondaryMenuElement();
+    syncNativeMenuTypography(menu, subtitlesGroup);
+
+    if (nativeColumns === undefined) {
+      configureFallbackMenu(menu, subtitlesColumn, subtitlesGroup);
+    } else {
+      syncNativeColumnMetrics(menu, subtitlesGroup, menuLayout, nativeColumns);
+      configureThreeColumnMenu(menu, menuLayout, nativeColumns);
     }
-  }
-  for (const previousList of document.querySelectorAll<HTMLElement>('.hbo-dual-sub-menu__primary-list')) {
-    if (previousList !== subtitlesGroup) {
-      previousList.classList.remove('hbo-dual-sub-menu__primary-list');
-    }
-  }
 
-  subtitlesColumn.classList.add('hbo-dual-sub-menu-column');
-  subtitlesGroup.classList.add('hbo-dual-sub-menu__primary-list');
-
-  if (menu.parentElement !== subtitlesColumn || menu.previousElementSibling !== subtitlesGroup) {
-    subtitlesGroup.insertAdjacentElement('afterend', menu);
+    activeMenuIntegration = {
+      menu,
+      subtitlesGroup,
+      subtitlesColumn,
+      menuLayout,
+      mode,
+      nativeColumns: nativeColumns ?? [],
+    };
   }
 
   syncPrimaryTrackFromNative();
-  syncNativeMenuMetrics(menu, subtitlesGroup);
-  renderSecondaryMenu(menu, subtitlesGroup);
+  const menu = activeMenuIntegration?.menu;
+  if (menu !== undefined) {
+    renderSecondaryMenu(menu, subtitlesGroup);
+  }
 }
 
-function syncNativeMenuMetrics(menu: HTMLElement, subtitlesGroup: HTMLElement): void {
+function createSecondaryMenuElement(): HTMLElement {
+  const menu = document.createElement('section');
+  menu.dataset.hboDualSubMenu = 'true';
+  menu.className = 'hbo-dual-sub-menu';
+  return menu;
+}
+
+function findReliableNativeMenuColumns(
+  menuLayout: HTMLElement,
+  subtitlesColumn: HTMLElement,
+  subtitlesGroup: HTMLElement,
+): HTMLElement[] | undefined {
+  const directChildren = Array.from(menuLayout.children).filter(
+    (child): child is HTMLElement => child instanceof HTMLElement && child.closest('[data-hbo-dual-sub-menu]') === null,
+  );
+  const nativeColumns = directChildren.filter((column) => hasNativeRadioGroup(column));
+
+  if (
+    directChildren.length !== 2 ||
+    nativeColumns.length !== 2 ||
+    !nativeColumns.includes(subtitlesColumn) ||
+    !subtitlesColumn.contains(subtitlesGroup)
+  ) {
+    return undefined;
+  }
+
+  return nativeColumns;
+}
+
+function hasNativeRadioGroup(column: HTMLElement): boolean {
+  return Array.from(column.querySelectorAll<HTMLElement>('[role="radiogroup"]')).some(
+    (group) => group.closest('[data-hbo-dual-sub-menu]') === null,
+  );
+}
+
+function matchesActiveMenuIntegration(
+  subtitlesGroup: HTMLElement,
+  subtitlesColumn: HTMLElement,
+  menuLayout: HTMLElement,
+  mode: ActiveMenuIntegration['mode'],
+  nativeColumns: HTMLElement[],
+): boolean {
+  const active = activeMenuIntegration;
+  if (
+    active === undefined ||
+    !active.menu.isConnected ||
+    active.subtitlesGroup !== subtitlesGroup ||
+    active.subtitlesColumn !== subtitlesColumn ||
+    active.menuLayout !== menuLayout ||
+    active.mode !== mode ||
+    active.nativeColumns.length !== nativeColumns.length
+  ) {
+    return false;
+  }
+
+  return active.nativeColumns.every((column, index) => column === nativeColumns[index] && column.isConnected);
+}
+
+function configureFallbackMenu(menu: HTMLElement, subtitlesColumn: HTMLElement, subtitlesGroup: HTMLElement): void {
+  subtitlesColumn.classList.add('hbo-dual-sub-menu-column');
+  subtitlesGroup.classList.add('hbo-dual-sub-menu__primary-list');
+  subtitlesGroup.insertAdjacentElement('afterend', menu);
+}
+
+function configureThreeColumnMenu(
+  menu: HTMLElement,
+  menuLayout: HTMLElement,
+  nativeColumns: HTMLElement[],
+): void {
+  menuLayout.classList.add('hbo-dual-sub-menu-layout');
+  for (const column of nativeColumns) {
+    column.classList.add('hbo-dual-sub-native-column');
+  }
+  nativeColumns[nativeColumns.length - 1]?.insertAdjacentElement('afterend', menu);
+}
+
+function cleanupMenuIntegration(): void {
+  const active = activeMenuIntegration;
+  activeMenuIntegration = undefined;
+
+  if (active !== undefined) {
+    clearMenuStyleProperties(active.menu);
+    active.menu.remove();
+    clearMenuLayoutProperties(active.menuLayout);
+    active.subtitlesColumn.classList.remove('hbo-dual-sub-menu-column', 'hbo-dual-sub-native-column');
+    active.subtitlesGroup.classList.remove('hbo-dual-sub-menu__primary-list');
+    for (const column of active.nativeColumns) {
+      column.classList.remove('hbo-dual-sub-native-column');
+    }
+  }
+
+  for (const menu of document.querySelectorAll<HTMLElement>('[data-hbo-dual-sub-menu]')) {
+    clearMenuStyleProperties(menu);
+    menu.remove();
+  }
+  for (const layout of document.querySelectorAll<HTMLElement>('.hbo-dual-sub-menu-layout')) {
+    clearMenuLayoutProperties(layout);
+  }
+  for (const column of document.querySelectorAll<HTMLElement>('.hbo-dual-sub-native-column')) {
+    column.classList.remove('hbo-dual-sub-native-column');
+  }
+  for (const column of document.querySelectorAll<HTMLElement>('.hbo-dual-sub-menu-column')) {
+    column.classList.remove('hbo-dual-sub-menu-column');
+  }
+  for (const list of document.querySelectorAll<HTMLElement>('.hbo-dual-sub-menu__primary-list')) {
+    list.classList.remove('hbo-dual-sub-menu__primary-list');
+  }
+}
+
+function clearMenuLayoutProperties(layout: HTMLElement): void {
+  layout.classList.remove('hbo-dual-sub-menu-layout');
+  layout.style.removeProperty('--hbo-dual-sub-native-column-width');
+  layout.style.removeProperty('--hbo-dual-sub-native-column-height');
+  layout.style.removeProperty('--hbo-dual-sub-measured-column-gap');
+}
+
+function clearMenuStyleProperties(menu: HTMLElement): void {
+  for (const property of [
+    '--hbo-dual-sub-option-font-size',
+    '--hbo-dual-sub-option-line-height',
+    '--hbo-dual-sub-option-font-weight',
+    '--hbo-dual-sub-option-letter-spacing',
+    '--hbo-dual-sub-option-padding-left',
+    '--hbo-dual-sub-option-height',
+    '--hbo-dual-sub-heading-font-size',
+    '--hbo-dual-sub-heading-line-height',
+    '--hbo-dual-sub-heading-font-weight',
+    '--hbo-dual-sub-column-padding-top',
+    '--hbo-dual-sub-column-padding-right',
+    '--hbo-dual-sub-column-padding-bottom',
+    '--hbo-dual-sub-column-padding-left',
+  ]) {
+    menu.style.removeProperty(property);
+  }
+}
+
+function syncNativeMenuTypography(menu: HTMLElement, subtitlesGroup: HTMLElement): void {
   const nativeOption = subtitlesGroup.querySelector<HTMLElement>('[role="radio"]');
   if (nativeOption !== null) {
     const optionStyle = window.getComputedStyle(nativeOption);
     const optionHeight = nativeOption.getBoundingClientRect().height;
     menu.style.setProperty('--hbo-dual-sub-option-font-size', optionStyle.fontSize);
     menu.style.setProperty('--hbo-dual-sub-option-line-height', optionStyle.lineHeight);
+    menu.style.setProperty('--hbo-dual-sub-option-font-weight', optionStyle.fontWeight);
+    menu.style.setProperty('--hbo-dual-sub-option-letter-spacing', optionStyle.letterSpacing);
+    menu.style.setProperty('--hbo-dual-sub-option-padding-left', optionStyle.paddingLeft);
     if (optionHeight > 0) {
       menu.style.setProperty('--hbo-dual-sub-option-height', `${optionHeight.toFixed(2)}px`);
     }
@@ -265,6 +424,39 @@ function syncNativeMenuMetrics(menu: HTMLElement, subtitlesGroup: HTMLElement): 
     const headingStyle = window.getComputedStyle(nativeHeading);
     menu.style.setProperty('--hbo-dual-sub-heading-font-size', headingStyle.fontSize);
     menu.style.setProperty('--hbo-dual-sub-heading-line-height', headingStyle.lineHeight);
+    menu.style.setProperty('--hbo-dual-sub-heading-font-weight', headingStyle.fontWeight);
+  }
+}
+
+function syncNativeColumnMetrics(
+  menu: HTMLElement,
+  subtitlesGroup: HTMLElement,
+  menuLayout: HTMLElement,
+  nativeColumns: HTMLElement[],
+): void {
+  const subtitlesColumn = subtitlesGroup.parentElement;
+  if (subtitlesColumn !== null) {
+    const columnStyle = window.getComputedStyle(subtitlesColumn);
+    menu.style.setProperty('--hbo-dual-sub-column-padding-top', columnStyle.paddingTop);
+    menu.style.setProperty('--hbo-dual-sub-column-padding-right', columnStyle.paddingRight);
+    menu.style.setProperty('--hbo-dual-sub-column-padding-bottom', columnStyle.paddingBottom);
+    menu.style.setProperty('--hbo-dual-sub-column-padding-left', columnStyle.paddingLeft);
+
+    const columnWidth = subtitlesColumn.getBoundingClientRect().width;
+    if (columnWidth > 0) {
+      menuLayout.style.setProperty('--hbo-dual-sub-native-column-width', `${columnWidth.toFixed(2)}px`);
+    }
+  }
+
+  const nativeColumnHeight = Math.max(...nativeColumns.map((column) => column.getBoundingClientRect().height), 0);
+  if (nativeColumnHeight > 0) {
+    menuLayout.style.setProperty('--hbo-dual-sub-native-column-height', `${nativeColumnHeight.toFixed(2)}px`);
+  }
+
+  const layoutStyle = window.getComputedStyle(menuLayout);
+  const nativeGap = Number.parseFloat(layoutStyle.columnGap);
+  if (Number.isFinite(nativeGap) && nativeGap >= 0) {
+    menuLayout.style.setProperty('--hbo-dual-sub-measured-column-gap', `${nativeGap.toFixed(2)}px`);
   }
 }
 
