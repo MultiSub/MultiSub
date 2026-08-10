@@ -86,10 +86,28 @@ video::cue {
     rgb(0 0 0 / 68%) 0 2px 6px;
 }
 
+.hbo-dual-sub-menu-column {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+
+.hbo-dual-sub-menu-column > * {
+  flex-shrink: 0 !important;
+}
+
+.hbo-dual-sub-menu-column > .hbo-dual-sub-menu__primary-list {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
 .hbo-dual-sub-menu {
   position: relative;
   z-index: 5;
-  margin-top: 28px;
+  flex: 0 0 auto;
+  margin-top: 0;
   color: #fff;
   font-family: inherit;
   pointer-events: auto;
@@ -99,9 +117,9 @@ video::cue {
   display: block;
   margin: 0 0 12px;
   color: #fff;
-  font-size: 24px;
+  font-size: var(--hbo-dual-sub-heading-font-size, 18px);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: var(--hbo-dual-sub-heading-line-height, 1.35);
   letter-spacing: 0;
 }
 
@@ -118,15 +136,15 @@ video::cue {
   position: relative;
   display: flex;
   align-items: center;
-  min-height: 44px;
+  min-height: var(--hbo-dual-sub-option-height, 46px);
   border: 0;
   margin: 0;
-  padding: 6px 8px 6px 56px;
+  padding: 0 0 0 32px;
   background: transparent;
   color: #fff;
   font: inherit;
-  font-size: 20px;
-  line-height: 1.25;
+  font-size: var(--hbo-dual-sub-option-font-size, inherit);
+  line-height: var(--hbo-dual-sub-option-line-height, inherit);
   letter-spacing: 0;
   text-align: left;
   cursor: pointer;
@@ -144,11 +162,11 @@ video::cue {
 .hbo-dual-sub-menu__option[aria-checked='true']::before {
   content: "";
   position: absolute;
-  left: 16px;
-  width: 20px;
-  height: 12px;
-  border-left: 3px solid currentColor;
-  border-bottom: 3px solid currentColor;
+  left: 13px;
+  width: 12px;
+  height: 7px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
   transform: rotate(-45deg) translateY(-1px);
 }
 
@@ -165,13 +183,4 @@ video::cue {
     width: min(96vw, 640px);
   }
 
-  .hbo-dual-sub-menu__heading {
-    font-size: 20px;
-  }
-
-  .hbo-dual-sub-menu__option {
-    min-height: 40px;
-    padding-left: 48px;
-    font-size: 18px;
-  }
 }

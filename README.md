@@ -19,7 +19,7 @@ MultiSub for HBO Max adds a second subtitle track to the HBO Max player, using t
 
 ## Screenshots
 
-The images below are neutral mock screenshots that show the extension layout without using copyrighted video frames. Real playback screenshots can replace them before the Chrome Web Store release.
+The images below are neutral mock screenshots for the repository documentation. The Chrome Web Store listing uses real playback and extension UI captures.
 
 ![Dual subtitle overlay mock screenshot](docs/screenshots/dual-subtitles.svg)
 
@@ -33,7 +33,7 @@ The content script renders subtitles with `textContent`, not HTML injection. It 
 
 ## Availability
 
-The extension is being prepared for a Chrome Web Store release. Until then, the source code is available here for review, testing, and contribution.
+MultiSub is available from the [Chrome Web Store](https://chromewebstore.google.com/detail/aibamjmjbaflpgokbdcindilmnngpbpg). The source code remains available here for review, testing, and contribution.
 
 ## Usage
 
@@ -84,7 +84,7 @@ Issues and pull requests are welcome. The most useful reports include:
 - whether the issue happens after seeking
 - a `#hbo-dual-sub-debug` snapshot when sync looks wrong
 
-Development notes and local verification commands live in [AGENTS.md](AGENTS.md).
+Development notes and local verification commands live in [AGENTS.md](AGENTS.md). Release history follows Keep a Changelog in [CHANGELOG.md](CHANGELOG.md).
 
 ## Inspiration
 

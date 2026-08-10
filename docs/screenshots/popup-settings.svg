@@ -1,7 +1,7 @@
 <svg width="900" height="720" viewBox="0 0 900 720" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="900" height="720" fill="#f4f7fb"/>
   <rect x="278" y="36" width="344" height="648" rx="24" fill="#ffffff" stroke="#d7deea" stroke-width="2"/>
-  <text x="316" y="94" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="800">MultiSubs for HBO Max</text>
+  <text x="316" y="94" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="800">MultiSub for HBO Max</text>
   <rect x="314" y="128" width="272" height="108" rx="14" fill="#f8fafc" stroke="#dce4ef"/>
   <text x="338" y="164" fill="#1f2937" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">Main Subtitle</text>
   <rect x="338" y="184" width="104" height="34" rx="17" fill="#e8eef7"/>

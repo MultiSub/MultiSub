@@ -1,10 +1,10 @@
 # AGENTS.md
 
-This file is for coding agents and contributors working on MultiSubs for HBO Max.
+This file is for coding agents and contributors working on MultiSub for HBO Max.
 
 ## Project Overview
 
-MultiSubs for HBO Max is a Chrome Manifest V3 extension that adds a second official subtitle track to HBO Max. It does not generate, translate, or fetch external subtitles. It only uses subtitle tracks that HBO Max exposes for the currently playing title.
+MultiSub for HBO Max is a Chrome Manifest V3 extension that adds a second official subtitle track to HBO Max. It does not generate, translate, or fetch external subtitles. It only uses subtitle tracks that HBO Max exposes for the currently playing title.
 
 The extension has three runtime surfaces:
 

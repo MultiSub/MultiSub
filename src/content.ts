@@ -170,7 +170,16 @@ async function restoreSelectionFromStorage(): Promise<void> {
 }
 
 function installMenuObserver(): void {
-  const observer = new MutationObserver(queueMenuRender);
+  const observer = new MutationObserver((mutations) => {
+    const onlyPluginMenuChanged = mutations.every((mutation) => {
+      const target = mutation.target instanceof Element ? mutation.target : mutation.target.parentElement;
+      return target?.closest('[data-hbo-dual-sub-menu]') !== null;
+    });
+
+    if (!onlyPluginMenuChanged) {
+      queueMenuRender();
+    }
+  });
   observer.observe(document.body, {
     attributes: true,
     attributeFilter: ['aria-checked', 'aria-label'],
@@ -204,6 +213,11 @@ function renderMenuIfPresent(): void {
     return;
   }
 
+  const subtitlesColumn = subtitlesGroup.parentElement;
+  if (subtitlesColumn === null) {
+    return;
+  }
+
   let menu = document.querySelector<HTMLElement>('[data-hbo-dual-sub-menu]');
   if (menu === null || !menu.isConnected) {
     menu = document.createElement('section');
@@ -211,17 +225,64 @@ function renderMenuIfPresent(): void {
     menu.className = 'hbo-dual-sub-menu';
   }
 
-  if (menu.parentElement !== subtitlesGroup.parentElement || menu.previousElementSibling !== subtitlesGroup) {
+  for (const previousColumn of document.querySelectorAll<HTMLElement>('.hbo-dual-sub-menu-column')) {
+    if (previousColumn !== subtitlesColumn) {
+      previousColumn.classList.remove('hbo-dual-sub-menu-column');
+    }
+  }
+  for (const previousList of document.querySelectorAll<HTMLElement>('.hbo-dual-sub-menu__primary-list')) {
+    if (previousList !== subtitlesGroup) {
+      previousList.classList.remove('hbo-dual-sub-menu__primary-list');
+    }
+  }
+
+  subtitlesColumn.classList.add('hbo-dual-sub-menu-column');
+  subtitlesGroup.classList.add('hbo-dual-sub-menu__primary-list');
+
+  if (menu.parentElement !== subtitlesColumn || menu.previousElementSibling !== subtitlesGroup) {
     subtitlesGroup.insertAdjacentElement('afterend', menu);
   }
 
   syncPrimaryTrackFromNative();
-  renderSecondaryMenu(menu);
+  syncNativeMenuMetrics(menu, subtitlesGroup);
+  renderSecondaryMenu(menu, subtitlesGroup);
 }
 
-function renderSecondaryMenu(menu: HTMLElement): void {
-  const nativeSubtitleOptions = nativeSubtitleLabels();
+function syncNativeMenuMetrics(menu: HTMLElement, subtitlesGroup: HTMLElement): void {
+  const nativeOption = subtitlesGroup.querySelector<HTMLElement>('[role="radio"]');
+  if (nativeOption !== null) {
+    const optionStyle = window.getComputedStyle(nativeOption);
+    const optionHeight = nativeOption.getBoundingClientRect().height;
+    menu.style.setProperty('--hbo-dual-sub-option-font-size', optionStyle.fontSize);
+    menu.style.setProperty('--hbo-dual-sub-option-line-height', optionStyle.lineHeight);
+    if (optionHeight > 0) {
+      menu.style.setProperty('--hbo-dual-sub-option-height', `${optionHeight.toFixed(2)}px`);
+    }
+  }
+
+  const nativeHeading = subtitlesGroup.previousElementSibling;
+  if (nativeHeading instanceof HTMLElement) {
+    const headingStyle = window.getComputedStyle(nativeHeading);
+    menu.style.setProperty('--hbo-dual-sub-heading-font-size', headingStyle.fontSize);
+    menu.style.setProperty('--hbo-dual-sub-heading-line-height', headingStyle.lineHeight);
+  }
+}
+
+function renderSecondaryMenu(menu: HTMLElement, subtitlesGroup: HTMLElement): void {
+  const nativeSubtitleOptions = nativeSubtitleLabels(subtitlesGroup);
   const displayTracks = tracksWithNativeLabels(tracks, nativeSubtitleOptions);
+  const renderKey = JSON.stringify({
+    tracks: displayTracks.map((track) => [track.id, track.displayLabel]),
+  });
+  if (menu.dataset.hboDualSubRenderKey === renderKey) {
+    for (const option of menu.querySelectorAll<HTMLElement>('[role="radio"]')) {
+      const trackId = option.dataset.hboDualSubTrackId;
+      const checked = trackId === undefined ? selectedTrackId === null : trackId === selectedTrackId;
+      option.setAttribute('aria-checked', String(checked));
+    }
+    return;
+  }
+
   const heading = document.createElement('span');
   heading.className = 'hbo-dual-sub-menu__heading';
   heading.setAttribute('role', 'heading');
@@ -242,14 +303,10 @@ function renderSecondaryMenu(menu: HTMLElement): void {
   }
 
   menu.replaceChildren(heading, list);
+  menu.dataset.hboDualSubRenderKey = renderKey;
 }
 
-function nativeSubtitleLabels(): string[] {
-  const subtitlesGroup = findNativeSubtitlesGroup();
-  if (subtitlesGroup === undefined) {
-    return [];
-  }
-
+function nativeSubtitleLabels(subtitlesGroup: HTMLElement): string[] {
   return Array.from(subtitlesGroup.querySelectorAll<HTMLElement>('[role="radio"]'))
     .map((radio) => (radio.getAttribute('aria-label') ?? radio.textContent ?? '').trim())
     .filter((label) => label !== '' && !/^off$/i.test(label));
