@@ -63,6 +63,11 @@
   transform: none;
 }
 
+.netflix-dual-sub-stack > .netflix-dual-sub-overlay.netflix-dual-sub-overlay--layout-placeholder:empty {
+  display: block;
+  visibility: hidden;
+}
+
 html[data-netflix-dual-sub-primary-mode='plugin'] .player-timedtext,
 html[data-netflix-dual-sub-primary-mode='plugin'] .player-timedtext-text-container,
 html[data-netflix-dual-sub-primary-mode='plugin'] [data-uia='player-subtitle'] {
@@ -88,6 +93,13 @@ html[data-netflix-dual-sub-primary-mode='plugin'] video::cue {
   overflow-x: hidden !important;
   overflow-y: auto !important;
   overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.netflix-dual-sub-menu-column::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .netflix-dual-sub-menu-column > * {

@@ -1,4 +1,4 @@
-import { shouldUsePluginPrimary } from '../subtitle-state';
+import { shouldPreserveLowerSubtitleSlot, shouldUsePluginPrimary } from '../subtitle-state';
 import {
   NETFLIX_MESSAGE_SOURCE,
   type NetflixContentToPageMessage,
@@ -27,6 +27,7 @@ import {
 const DEBUG_SNAPSHOT_ID = 'netflix-dual-sub-debug';
 const DEBUG_SNAPSHOT_INTERVAL_MS = 250;
 const PRIMARY_SUBTITLE_SCALE_MULTIPLIER = 1.16;
+const SUBTITLE_TIME_JUMP_RESET_SECONDS = 1;
 
 let activeMediaId: string | null = null;
 let currentNativeTrackId: string | null = null;
@@ -45,6 +46,10 @@ let selectionRestoredForMedia: string | null = null;
 let animationStarted = false;
 let currentCueText = '';
 let currentPrimaryCueText = '';
+let heldSecondaryOverlayHeight = 0;
+let heldSecondaryOverlayForPrimaryText: string | null = null;
+let trackedSubtitleVideo: HTMLVideoElement | undefined;
+let lastSubtitleVideoTime: number | undefined;
 let menuRenderQueued = false;
 let menuPopoverAnchor: HTMLElement | undefined;
 let menuPopoverAnchorObserver: MutationObserver | undefined;
@@ -606,17 +611,51 @@ function startSubtitleLoop(): void {
 function syncSubtitleToVideo(): void {
   const video = activeVideo();
   if (video === null || activeMediaId === null) {
+    resetSubtitlePlaybackTracking();
     updateOverlay('');
     updatePrimaryOverlay('');
     publishDebugSnapshotThrottled();
     return;
   }
 
-  const secondary = selectedTrackId === null ? [] : findCuesAt(video.currentTime, cues);
-  const primary = primaryTrackId === null ? [] : findCuesAt(video.currentTime, primaryCues);
-  updateOverlay(activeSubtitleText(secondary));
-  updatePrimaryOverlay(activeSubtitleText(primary));
+  const currentTime = video.currentTime;
+  const resetLayout = updateSubtitlePlaybackTracking(video, currentTime);
+  const secondary = selectedTrackId === null ? [] : findCuesAt(currentTime, cues);
+  const primary = primaryTrackId === null ? [] : findCuesAt(currentTime, primaryCues);
+  const secondaryText = activeSubtitleText(secondary);
+  const primaryText = activeSubtitleText(primary);
+  const preserveLowerSlot = shouldPreserveLowerSubtitleSlot({
+    activeUpperCues: primary,
+    currentTime,
+    heldForUpperText: heldSecondaryOverlayForPrimaryText,
+    lowerSlotOccupied: currentCueText.trim() !== '' || heldSecondaryOverlayHeight > 0,
+    lowerText: secondaryText,
+    previousUpperText: currentPrimaryCueText,
+    reset: resetLayout,
+    stacked: shouldStackLowerSubtitles(),
+    upperText: primaryText,
+  });
+
+  updateOverlay(secondaryText, { preserveLowerSlot, upperText: primaryText });
+  updatePrimaryOverlay(primaryText);
   publishDebugSnapshotThrottled();
+}
+
+function updateSubtitlePlaybackTracking(video: HTMLVideoElement, currentTime: number): boolean {
+  const resetLayout =
+    trackedSubtitleVideo !== video ||
+    video.seeking ||
+    (lastSubtitleVideoTime !== undefined &&
+      Math.abs(currentTime - lastSubtitleVideoTime) > SUBTITLE_TIME_JUMP_RESET_SECONDS);
+  trackedSubtitleVideo = video;
+  lastSubtitleVideoTime = currentTime;
+  return resetLayout;
+}
+
+function resetSubtitlePlaybackTracking(): void {
+  trackedSubtitleVideo = undefined;
+  lastSubtitleVideoTime = undefined;
+  resetSecondaryLayoutPlaceholder();
 }
 
 function activeSubtitleText(activeCues: NetflixSubtitleCue[]): string {
@@ -655,18 +694,36 @@ function lastStartedCueIndex(time: number, sourceCues: NetflixSubtitleCue[]): nu
   return result;
 }
 
-function updateOverlay(text: string): void {
+function updateOverlay(
+  text: string,
+  options: { preserveLowerSlot?: boolean; upperText?: string } = {},
+): void {
   ensureOverlay();
-  if (text === currentCueText && overlay?.textContent === text) {
+  if (overlay === undefined) {
     return;
   }
-  currentCueText = text;
-  if (overlay !== undefined) {
-    overlay.textContent = text;
+
+  const preserveLowerSlot = options.preserveLowerSlot === true;
+  if (text === currentCueText && overlay.textContent === text) {
+    syncSecondaryLayoutPlaceholder(preserveLowerSlot, options.upperText ?? '');
+    return;
   }
+
+  if (preserveLowerSlot && text.trim() === '' && currentCueText.trim() !== '') {
+    const previousHeight = overlay.getBoundingClientRect().height;
+    if (Number.isFinite(previousHeight) && previousHeight > 0) {
+      heldSecondaryOverlayHeight = previousHeight;
+      heldSecondaryOverlayForPrimaryText = options.upperText ?? null;
+    }
+  }
+
+  currentCueText = text;
+  overlay.textContent = text;
+  syncSecondaryLayoutPlaceholder(preserveLowerSlot, options.upperText ?? '');
 }
 
 function clearOverlay(): void {
+  resetSecondaryLayoutPlaceholder();
   currentCueText = '';
   if (overlay !== undefined) {
     overlay.textContent = '';
@@ -675,6 +732,9 @@ function clearOverlay(): void {
 
 function updatePrimaryOverlay(text: string): void {
   ensurePrimaryOverlay();
+  if (heldSecondaryOverlayForPrimaryText !== null && heldSecondaryOverlayForPrimaryText !== text) {
+    resetSecondaryLayoutPlaceholder();
+  }
   if (text === currentPrimaryCueText && primaryOverlay?.textContent === text) {
     return;
   }
@@ -685,10 +745,33 @@ function updatePrimaryOverlay(text: string): void {
 }
 
 function clearPrimaryOverlay(): void {
+  resetSecondaryLayoutPlaceholder();
   currentPrimaryCueText = '';
   if (primaryOverlay !== undefined) {
     primaryOverlay.textContent = '';
   }
+}
+
+function syncSecondaryLayoutPlaceholder(preserveLowerSlot: boolean, upperText: string): void {
+  if (
+    overlay === undefined ||
+    !preserveLowerSlot ||
+    heldSecondaryOverlayHeight <= 0 ||
+    heldSecondaryOverlayForPrimaryText !== upperText
+  ) {
+    resetSecondaryLayoutPlaceholder();
+    return;
+  }
+
+  overlay.classList.add('netflix-dual-sub-overlay--layout-placeholder');
+  overlay.style.height = `${heldSecondaryOverlayHeight.toFixed(2)}px`;
+}
+
+function resetSecondaryLayoutPlaceholder(): void {
+  heldSecondaryOverlayHeight = 0;
+  heldSecondaryOverlayForPrimaryText = null;
+  overlay?.classList.remove('netflix-dual-sub-overlay--layout-placeholder');
+  overlay?.style.removeProperty('height');
 }
 
 function ensureOverlay(): void {
@@ -700,6 +783,7 @@ function ensureOverlay(): void {
   if (host === null) {
     return;
   }
+  resetSecondaryLayoutPlaceholder();
   overlay = document.createElement('div');
   overlay.className = 'netflix-dual-sub-overlay';
   overlay.dataset.netflixDualSubOverlay = 'true';
@@ -741,6 +825,7 @@ function syncOverlayHost(): void {
     }
     return;
   }
+  resetSecondaryLayoutPlaceholder();
   if (primaryOverlay !== undefined && primaryOverlay.parentElement !== host) {
     host.append(primaryOverlay);
   }
@@ -774,6 +859,7 @@ function ensureBottomStack(host: HTMLElement): HTMLDivElement {
 }
 
 function applyOverlaySettings(): void {
+  resetSecondaryLayoutPlaceholder();
   syncOverlayHost();
   const base = subtitleSettings.secondaryBottomVh;
   if (overlay !== undefined) {
