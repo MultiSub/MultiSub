@@ -90,6 +90,7 @@ video::cue {
   overflow-x: hidden !important;
   overflow-y: auto !important;
   overscroll-behavior: contain;
+  scrollbar-width: none;
 }
 
 .hbo-dual-sub-menu-column > * {
@@ -114,6 +115,7 @@ video::cue {
     minmax(min(var(--hbo-dual-sub-native-column-width), calc(100vw - 32px)), 1fr)
   ) !important;
   align-items: start !important;
+  justify-content: start !important;
   gap: var(--hbo-dual-sub-native-column-gap) !important;
   width: min(
     calc(100vw - 32px),
@@ -127,7 +129,7 @@ video::cue {
   overflow-x: auto !important;
   overflow-y: visible !important;
   overscroll-behavior-x: contain;
-  scrollbar-gutter: stable;
+  scrollbar-width: none;
 }
 
 .hbo-dual-sub-menu-layout > .hbo-dual-sub-native-column,
@@ -135,10 +137,21 @@ video::cue {
   box-sizing: border-box !important;
   min-width: min(var(--hbo-dual-sub-native-column-width), calc(100vw - 32px)) !important;
   max-height: min(var(--hbo-dual-sub-native-column-height), calc(100vh - 128px)) !important;
+}
+
+.hbo-dual-sub-menu-layout > .hbo-dual-sub-menu {
   overflow-x: hidden !important;
   overflow-y: auto !important;
   overscroll-behavior-y: contain;
-  scrollbar-gutter: stable;
+  scrollbar-width: none;
+}
+
+.hbo-dual-sub-menu-column::-webkit-scrollbar,
+.hbo-dual-sub-menu-layout::-webkit-scrollbar,
+.hbo-dual-sub-menu-layout > .hbo-dual-sub-menu::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .hbo-dual-sub-menu-layout > .hbo-dual-sub-menu {
@@ -158,8 +171,14 @@ video::cue {
 }
 
 .hbo-dual-sub-menu__heading {
+  box-sizing: border-box;
   display: block;
-  margin: 0 0 12px;
+  margin: 0 0 var(--hbo-dual-sub-heading-list-gap, 16px);
+  padding: 0 0 var(--hbo-dual-sub-heading-padding-bottom, 16px);
+  border: 0;
+  border-bottom-width: var(--hbo-dual-sub-heading-divider-width, 1px);
+  border-bottom-style: var(--hbo-dual-sub-heading-divider-style, solid);
+  border-bottom-color: var(--hbo-dual-sub-heading-divider-color, rgb(255 255 255 / 50%));
   color: #fff;
   font-size: var(--hbo-dual-sub-heading-font-size, 18px);
   font-weight: var(--hbo-dual-sub-heading-font-weight, 700);
@@ -183,7 +202,7 @@ video::cue {
   min-height: var(--hbo-dual-sub-option-height, 46px);
   border: 0;
   margin: 0;
-  padding: 0 0 0 var(--hbo-dual-sub-option-padding-left, 32px);
+  padding: 0 0 0 32px;
   background: transparent;
   color: #fff;
   font: inherit;

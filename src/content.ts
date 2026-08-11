@@ -391,11 +391,15 @@ function clearMenuStyleProperties(menu: HTMLElement): void {
     '--hbo-dual-sub-option-line-height',
     '--hbo-dual-sub-option-font-weight',
     '--hbo-dual-sub-option-letter-spacing',
-    '--hbo-dual-sub-option-padding-left',
     '--hbo-dual-sub-option-height',
     '--hbo-dual-sub-heading-font-size',
     '--hbo-dual-sub-heading-line-height',
     '--hbo-dual-sub-heading-font-weight',
+    '--hbo-dual-sub-heading-padding-bottom',
+    '--hbo-dual-sub-heading-list-gap',
+    '--hbo-dual-sub-heading-divider-width',
+    '--hbo-dual-sub-heading-divider-style',
+    '--hbo-dual-sub-heading-divider-color',
     '--hbo-dual-sub-column-padding-top',
     '--hbo-dual-sub-column-padding-right',
     '--hbo-dual-sub-column-padding-bottom',
@@ -414,7 +418,6 @@ function syncNativeMenuTypography(menu: HTMLElement, subtitlesGroup: HTMLElement
     menu.style.setProperty('--hbo-dual-sub-option-line-height', optionStyle.lineHeight);
     menu.style.setProperty('--hbo-dual-sub-option-font-weight', optionStyle.fontWeight);
     menu.style.setProperty('--hbo-dual-sub-option-letter-spacing', optionStyle.letterSpacing);
-    menu.style.setProperty('--hbo-dual-sub-option-padding-left', optionStyle.paddingLeft);
     if (optionHeight > 0) {
       menu.style.setProperty('--hbo-dual-sub-option-height', `${optionHeight.toFixed(2)}px`);
     }
@@ -426,6 +429,20 @@ function syncNativeMenuTypography(menu: HTMLElement, subtitlesGroup: HTMLElement
     menu.style.setProperty('--hbo-dual-sub-heading-font-size', headingStyle.fontSize);
     menu.style.setProperty('--hbo-dual-sub-heading-line-height', headingStyle.lineHeight);
     menu.style.setProperty('--hbo-dual-sub-heading-font-weight', headingStyle.fontWeight);
+    menu.style.setProperty('--hbo-dual-sub-heading-padding-bottom', headingStyle.paddingBottom);
+
+    const headingRect = nativeHeading.getBoundingClientRect();
+    const listGap = subtitlesGroup.getBoundingClientRect().top - headingRect.bottom;
+    if (Number.isFinite(listGap) && listGap >= 0) {
+      menu.style.setProperty('--hbo-dual-sub-heading-list-gap', `${listGap.toFixed(2)}px`);
+    }
+
+    const dividerWidth = Number.parseFloat(headingStyle.borderBottomWidth);
+    if (dividerWidth > 0 && headingStyle.borderBottomStyle !== 'none') {
+      menu.style.setProperty('--hbo-dual-sub-heading-divider-width', headingStyle.borderBottomWidth);
+      menu.style.setProperty('--hbo-dual-sub-heading-divider-style', headingStyle.borderBottomStyle);
+      menu.style.setProperty('--hbo-dual-sub-heading-divider-color', headingStyle.borderBottomColor);
+    }
   }
 }
 
