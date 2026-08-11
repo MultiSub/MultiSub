@@ -6,7 +6,11 @@ import {
   subtitleFontFamilyCss,
   type SubtitleSettings,
 } from './settings';
-import { didSubtitleTrackChange, shouldUsePluginPrimary } from './subtitle-state';
+import {
+  didSubtitleTrackChange,
+  shouldPreserveLowerSubtitleSlot,
+  shouldUsePluginPrimary,
+} from './subtitle-state';
 import { trackForNativeSubtitleLabel as matchNativeSubtitleTrack, tracksWithNativeLabels } from './track-matching';
 
 interface StoredSelection {
@@ -27,6 +31,7 @@ const STORAGE_KEYS: (keyof StoredSelection)[] = ['secondaryTrackId', 'secondaryL
 const DEBUG_SNAPSHOT_ID = 'hbo-dual-sub-debug';
 const DEBUG_SNAPSHOT_INTERVAL_MS = 250;
 const PRIMARY_SUBTITLE_SCALE_MULTIPLIER = 1.16;
+const SUBTITLE_TIME_JUMP_RESET_SECONDS = 1;
 
 let tracks: SubtitleTrack[] = [];
 let selectedTrackId: string | null = null;
@@ -43,6 +48,10 @@ let restoredStoredSelection = false;
 let animationStarted = false;
 let currentCueText = '';
 let currentPrimaryCueText = '';
+let heldSecondaryOverlayHeight = 0;
+let heldSecondaryOverlayForPrimaryText: string | null = null;
+let trackedSubtitleVideo: HTMLVideoElement | undefined;
+let lastSubtitleVideoTime: number | undefined;
 let menuRenderQueued = false;
 let activeMenuIntegration: ActiveMenuIntegration | undefined;
 let debugSnapshotElement: HTMLScriptElement | undefined;
@@ -681,19 +690,52 @@ function startSubtitleLoop(): void {
 function syncSubtitleToVideo(): void {
   const video = document.querySelector('video');
   if (video === null) {
+    resetSubtitlePlaybackTracking();
     updateOverlay('');
     updatePrimaryOverlay('');
     publishDebugSnapshotThrottled();
     return;
   }
 
-  const activeSecondaryCues = selectedTrackId === null || cues.length === 0 ? [] : findCuesAt(video.currentTime, cues);
+  const currentTime = video.currentTime;
+  const resetLayout = updateSubtitlePlaybackTracking(video, currentTime);
+  const activeSecondaryCues = selectedTrackId === null || cues.length === 0 ? [] : findCuesAt(currentTime, cues);
   const activePrimaryCues =
-    primaryTrackId === null || primaryCues.length === 0 ? [] : findCuesAt(video.currentTime, primaryCues);
+    primaryTrackId === null || primaryCues.length === 0 ? [] : findCuesAt(currentTime, primaryCues);
+  const secondaryText = activeSubtitleText(activeSecondaryCues);
+  const primaryText = activeSubtitleText(activePrimaryCues);
+  const preserveLowerSlot = shouldPreserveLowerSubtitleSlot({
+    activeUpperCues: activePrimaryCues,
+    currentTime,
+    heldForUpperText: heldSecondaryOverlayForPrimaryText,
+    lowerSlotOccupied: currentCueText.trim() !== '' || heldSecondaryOverlayHeight > 0,
+    lowerText: secondaryText,
+    previousUpperText: currentPrimaryCueText,
+    reset: resetLayout,
+    stacked: shouldStackLowerSubtitles(),
+    upperText: primaryText,
+  });
 
-  updateOverlay(activeSubtitleText(activeSecondaryCues));
-  updatePrimaryOverlay(activeSubtitleText(activePrimaryCues));
+  updateOverlay(secondaryText, { preserveLowerSlot, upperText: primaryText });
+  updatePrimaryOverlay(primaryText);
   publishDebugSnapshotThrottled();
+}
+
+function updateSubtitlePlaybackTracking(video: HTMLVideoElement, currentTime: number): boolean {
+  const resetLayout =
+    trackedSubtitleVideo !== video ||
+    video.seeking ||
+    (lastSubtitleVideoTime !== undefined &&
+      Math.abs(currentTime - lastSubtitleVideoTime) > SUBTITLE_TIME_JUMP_RESET_SECONDS);
+  trackedSubtitleVideo = video;
+  lastSubtitleVideoTime = currentTime;
+  return resetLayout;
+}
+
+function resetSubtitlePlaybackTracking(): void {
+  trackedSubtitleVideo = undefined;
+  lastSubtitleVideoTime = undefined;
+  resetSecondaryLayoutPlaceholder();
 }
 
 function activeSubtitleText(activeCues: SubtitleCue[]): string {
@@ -742,20 +784,37 @@ function lastStartedCueIndex(time: number, sourceCues: SubtitleCue[] = cues): nu
   return lastStartedIndex;
 }
 
-function updateOverlay(text: string): void {
+function updateOverlay(
+  text: string,
+  options: { preserveLowerSlot?: boolean; upperText?: string } = {},
+): void {
   ensureOverlay();
-  if (text === currentCueText && overlay?.textContent === text) {
+  if (overlay === undefined) {
     return;
   }
 
-  currentCueText = text;
-  if (overlay !== undefined) {
-    overlay.textContent = text;
+  const preserveLowerSlot = options.preserveLowerSlot === true;
+  if (text === currentCueText && overlay?.textContent === text) {
+    syncSecondaryLayoutPlaceholder(preserveLowerSlot, options.upperText ?? '');
+    return;
   }
+
+  if (preserveLowerSlot && text.trim() === '' && currentCueText.trim() !== '') {
+    const previousHeight = overlay.getBoundingClientRect().height;
+    if (Number.isFinite(previousHeight) && previousHeight > 0) {
+      heldSecondaryOverlayHeight = previousHeight;
+      heldSecondaryOverlayForPrimaryText = options.upperText ?? null;
+    }
+  }
+
+  currentCueText = text;
+  overlay.textContent = text;
+  syncSecondaryLayoutPlaceholder(preserveLowerSlot, options.upperText ?? '');
 }
 
 function clearOverlay(): void {
   ensureOverlay();
+  resetSecondaryLayoutPlaceholder();
   currentCueText = '';
   if (overlay !== undefined) {
     overlay.textContent = '';
@@ -764,6 +823,9 @@ function clearOverlay(): void {
 
 function updatePrimaryOverlay(text: string): void {
   ensurePrimaryOverlay();
+  if (heldSecondaryOverlayForPrimaryText !== null && heldSecondaryOverlayForPrimaryText !== text) {
+    resetSecondaryLayoutPlaceholder();
+  }
   if (text === currentPrimaryCueText && primaryOverlay?.textContent === text) {
     return;
   }
@@ -776,10 +838,33 @@ function updatePrimaryOverlay(text: string): void {
 
 function clearPrimaryOverlay(): void {
   ensurePrimaryOverlay();
+  resetSecondaryLayoutPlaceholder();
   currentPrimaryCueText = '';
   if (primaryOverlay !== undefined) {
     primaryOverlay.textContent = '';
   }
+}
+
+function syncSecondaryLayoutPlaceholder(preserveLowerSlot: boolean, upperText: string): void {
+  if (
+    overlay === undefined ||
+    !preserveLowerSlot ||
+    heldSecondaryOverlayHeight <= 0 ||
+    heldSecondaryOverlayForPrimaryText !== upperText
+  ) {
+    resetSecondaryLayoutPlaceholder();
+    return;
+  }
+
+  overlay.classList.add('hbo-dual-sub-overlay--layout-placeholder');
+  overlay.style.height = `${heldSecondaryOverlayHeight.toFixed(2)}px`;
+}
+
+function resetSecondaryLayoutPlaceholder(): void {
+  heldSecondaryOverlayHeight = 0;
+  heldSecondaryOverlayForPrimaryText = null;
+  overlay?.classList.remove('hbo-dual-sub-overlay--layout-placeholder');
+  overlay?.style.removeProperty('height');
 }
 
 function publishDebugSnapshotThrottled(): void {
@@ -968,6 +1053,7 @@ function ensureOverlay(): void {
     return;
   }
 
+  resetSecondaryLayoutPlaceholder();
   overlay = document.createElement('div');
   overlay.className = 'hbo-dual-sub-overlay';
   overlay.dataset.hboDualSubOverlay = 'true';
@@ -993,6 +1079,7 @@ function ensurePrimaryOverlay(): void {
 }
 
 function applyOverlaySettings(): void {
+  resetSecondaryLayoutPlaceholder();
   syncOverlayHost();
 
   const baseBottom = subtitleSettings.secondaryBottomVh;
@@ -1038,6 +1125,7 @@ function syncOverlayHost(): void {
     return;
   }
 
+  resetSecondaryLayoutPlaceholder();
   if (primaryOverlay !== undefined && primaryOverlay.parentElement !== host) {
     host.append(primaryOverlay);
   }

@@ -63,6 +63,11 @@
   transform: none;
 }
 
+.hbo-dual-sub-stack > .hbo-dual-sub-overlay.hbo-dual-sub-overlay--layout-placeholder:empty {
+  display: block;
+  visibility: hidden;
+}
+
 html[data-hbo-dual-sub-primary-mode='plugin'] [class*='TextCue'],
 html[data-hbo-dual-sub-primary-mode='plugin'] [class*='CaptionWindow'] {
   visibility: hidden !important;
