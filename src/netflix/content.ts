@@ -16,12 +16,12 @@ import {
 } from './settings';
 import {
   findNetflixTrackForSelection,
-  type NetflixAvailabilityState,
   type StoredNetflixSelection,
 } from './track-model';
 import {
   isNetflixAudioSubtitlePanelCandidate,
   isNetflixMenuPopoverAnchorCandidate,
+  selectNetflixMenuTypographySample,
 } from './menu-model';
 
 const DEBUG_SNAPSHOT_ID = 'netflix-dual-sub-debug';
@@ -57,7 +57,6 @@ let debugSnapshotElement: HTMLScriptElement | undefined;
 let lastDebugSnapshotAt = 0;
 
 installMessageListener();
-installRuntimeMessageListener();
 announcePageBridgeReady();
 installStorageListener();
 void loadStoredState();
@@ -134,24 +133,6 @@ function installMessageListener(): void {
         console.warn(`[Netflix Dual Sub] ${event.data.message}`);
         break;
     }
-  });
-}
-
-function installRuntimeMessageListener(): void {
-  chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
-    if (isSecondarySelectionRequest(message)) {
-      selectSecondaryTrack(message.trackId, { persist: false });
-      return;
-    }
-    if (!isAvailabilityRequest(message)) {
-      return;
-    }
-    sendResponse({
-      source: NETFLIX_MESSAGE_SOURCE,
-      direction: 'content-to-extension',
-      type: 'availability',
-      availability: currentAvailability(),
-    });
   });
 }
 
@@ -277,15 +258,6 @@ function selectPrimaryTrack(trackId: string | null): void {
     slot: 'primary',
     trackId,
   });
-}
-
-function currentAvailability(): NetflixAvailabilityState {
-  return {
-    mediaId: activeMediaId,
-    currentTrackId: currentNativeTrackId,
-    selectedTrackId,
-    tracks,
-  };
 }
 
 function installMenuObserver(): void {
@@ -477,7 +449,7 @@ function syncNativeMenuColumn(menu: HTMLElement, nativeColumn: HTMLElement): voi
 function syncNativeMenuMetrics(menu: HTMLElement, nativeColumn: HTMLElement): void {
   const nativeOption = nativeMenuOptions(nativeColumn)[0];
   if (nativeOption !== undefined) {
-    const optionStyle = window.getComputedStyle(nativeOption);
+    const optionStyle = nativeRenderedTextStyle(nativeOption);
     const optionHeight = nativeOption.getBoundingClientRect().height;
     menu.style.setProperty('--netflix-dual-sub-option-font-size', optionStyle.fontSize);
     menu.style.setProperty('--netflix-dual-sub-option-line-height', optionStyle.lineHeight);
@@ -488,10 +460,51 @@ function syncNativeMenuMetrics(menu: HTMLElement, nativeColumn: HTMLElement): vo
 
   const nativeHeading = findNativeColumnHeading(nativeColumn);
   if (nativeHeading !== undefined) {
-    const headingStyle = window.getComputedStyle(nativeHeading);
+    const headingStyle = nativeRenderedTextStyle(nativeHeading);
     menu.style.setProperty('--netflix-dual-sub-heading-font-size', headingStyle.fontSize);
     menu.style.setProperty('--netflix-dual-sub-heading-line-height', headingStyle.lineHeight);
   }
+}
+
+function nativeRenderedTextStyle(root: HTMLElement): CSSStyleDeclaration {
+  const textElements = textBearingElements(root);
+  const visibleTextElements = textElements.filter(isElementVisible);
+  const candidates = visibleTextElements.length > 0 ? visibleTextElements : textElements;
+  const samples = candidates.map((element) => {
+    const style = window.getComputedStyle(element);
+    return {
+      depth: descendantDepth(root, element),
+      element,
+      fontSize: Number.parseFloat(style.fontSize),
+      style,
+    };
+  });
+  return selectNetflixMenuTypographySample(samples)?.style ?? window.getComputedStyle(root);
+}
+
+function textBearingElements(root: HTMLElement): HTMLElement[] {
+  const elements: HTMLElement[] = [];
+  const seen = new Set<HTMLElement>();
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+    if ((node.textContent ?? '').trim() === '') {
+      continue;
+    }
+    const parent = node.parentElement;
+    if (parent !== null && !seen.has(parent)) {
+      seen.add(parent);
+      elements.push(parent);
+    }
+  }
+  return elements;
+}
+
+function descendantDepth(root: HTMLElement, descendant: HTMLElement): number {
+  let depth = 0;
+  for (let current: HTMLElement | null = descendant; current !== null && current !== root; current = current.parentElement) {
+    depth += 1;
+  }
+  return depth;
 }
 
 function syncMenuSelection(menu: HTMLElement): void {
@@ -1097,25 +1110,6 @@ function sanitizeStoredSelection(value: unknown): StoredNetflixSelection {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
-}
-
-function isAvailabilityRequest(value: unknown): boolean {
-  return (
-    isRecord(value) &&
-    value.source === NETFLIX_MESSAGE_SOURCE &&
-    value.direction === 'extension-to-content' &&
-    value.type === 'get-availability'
-  );
-}
-
-function isSecondarySelectionRequest(value: unknown): value is { trackId: string | null } {
-  return (
-    isRecord(value) &&
-    value.source === NETFLIX_MESSAGE_SOURCE &&
-    value.direction === 'extension-to-content' &&
-    value.type === 'select-secondary' &&
-    (value.trackId === null || typeof value.trackId === 'string')
-  );
 }
 
 function onDocumentReady(callback: () => void): void {

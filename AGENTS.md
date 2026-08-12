@@ -91,8 +91,8 @@ Always mute the Netflix page before playback testing. Netflix may replace its `<
 ## Runtime Behavior
 
 - The native HBO or Netflix subtitle menu should continue to work.
-- Each extension adds `Secondary Subtitles` as a third menu column beside the native audio and subtitle columns; Netflix also exposes track selection in its popup.
-- The Netflix popup changes only the active tab. Storage changes update the preference used for future titles and must not immediately switch another open Netflix tab.
+- Each extension adds `Secondary Subtitles` as a third menu column beside the native audio and subtitle columns; track selection is not duplicated in the popup.
+- Netflix selection storage updates the preference used for future titles and must not immediately switch another open Netflix tab.
 - The second subtitle selection is persisted and restored when a video opens.
 - `Matched style` mode lets the extension render the primary subtitle too; native captions are hidden only after the matching official track is loaded.
 - Plugin-rendered primary subtitles stay in the lower subtitle area.

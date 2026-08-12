@@ -16,8 +16,7 @@ body {
 }
 
 button,
-input,
-select {
+input {
   font: inherit;
 }
 
@@ -74,30 +73,6 @@ h2 {
   border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 8px;
   background: #1a1a1a;
-}
-
-.select-label,
-.track-hint {
-  color: #edf2f7;
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-#secondaryTrack {
-  width: 100%;
-  min-height: 36px;
-  border: 1px solid rgb(255 255 255 / 16%);
-  border-radius: 7px;
-  padding: 0 32px 0 10px;
-  background: #101010;
-  color: #fff;
-  cursor: pointer;
-}
-
-.track-hint {
-  margin: 0;
-  color: #9ca3af;
-  font-size: 11px;
 }
 
 .preview-stage {
@@ -209,8 +184,7 @@ input[type='color'] {
 
 .swatch:focus-visible,
 .segmented-control button:focus-visible,
-.popup-footer button:focus-visible,
-#secondaryTrack:focus-visible {
+.popup-footer button:focus-visible {
   outline: 2px solid #ff6b73;
   outline-offset: 2px;
 }

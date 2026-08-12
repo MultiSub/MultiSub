@@ -52,4 +52,10 @@ describe('independent extension packaging', () => {
       expect(popup).toContain('data-font-family="serif"');
     }
   });
+
+  it('keeps Netflix track selection in the injected native menu', () => {
+    const popup = readText('../netflix-public/popup.html');
+    expect(popup).not.toContain('id="secondaryTrack"');
+    expect(popup).not.toContain('Official Netflix track');
+  });
 });

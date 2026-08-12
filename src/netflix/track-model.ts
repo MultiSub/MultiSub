@@ -6,13 +6,6 @@ export interface StoredNetflixSelection {
   kind: NetflixSubtitleKind | null;
 }
 
-export interface NetflixAvailabilityState {
-  mediaId: string | null;
-  currentTrackId: string | null;
-  selectedTrackId: string | null;
-  tracks: NetflixSubtitleTrack[];
-}
-
 export interface NetflixTrackResource {
   trackIds: string[];
   profile: string;

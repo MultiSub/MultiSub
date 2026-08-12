@@ -92,9 +92,9 @@ dist/netflix/
 1. Load `dist/netflix` as a separate unpacked extension.
 2. Refresh Netflix so the page-world hook runs from `document_start`.
 3. Open a video.
-4. Select the second official track from the Netflix extension popup or its injected `Secondary Subtitles` section when the Netflix menu is available.
+4. Select the second official track from the injected `Secondary Subtitles` column in Netflix's audio/subtitle menu.
 
-Both popups control only their own extension because Chrome gives the two packages separate storage areas. The Netflix popup queries and changes only the active playback tab; its saved language preference is reused when a future title opens.
+Both popups control only their own extension's display settings because Chrome gives the two packages separate storage areas. Netflix second-track selection lives in the native menu's injected third column, and the saved preference is reused when a future title opens.
 
 The font choice applies to subtitles rendered by the extension: always the second subtitle, and the main subtitle when `Matched style` is enabled. A native HBO Max or Netflix main subtitle keeps the streaming service's own font.
 

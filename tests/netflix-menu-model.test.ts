@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   isNetflixAudioSubtitlePanelCandidate,
   isNetflixMenuPopoverAnchorCandidate,
+  selectNetflixMenuTypographySample,
 } from '../src/netflix/menu-model';
 
 describe('isNetflixAudioSubtitlePanelCandidate', () => {
@@ -28,5 +29,28 @@ describe('isNetflixMenuPopoverAnchorCandidate', () => {
     expect(isNetflixMenuPopoverAnchorCandidate('static', false)).toBe(false);
     expect(isNetflixMenuPopoverAnchorCandidate('absolute', true)).toBe(false);
     expect(isNetflixMenuPopoverAnchorCandidate('fixed', true)).toBe(false);
+  });
+});
+
+describe('selectNetflixMenuTypographySample', () => {
+  it('prefers the rendered descendant text size over a small layout container', () => {
+    const container = { name: 'option container', fontSize: 8, depth: 0 };
+    const label = { name: 'visible label', fontSize: 18, depth: 2 };
+
+    expect(selectNetflixMenuTypographySample([container, label])).toBe(label);
+  });
+
+  it('prefers the deepest text node when inherited sizes are equal', () => {
+    const wrapper = { name: 'wrapper', fontSize: 16, depth: 1 };
+    const label = { name: 'label', fontSize: 16, depth: 3 };
+
+    expect(selectNetflixMenuTypographySample([wrapper, label])).toBe(label);
+  });
+
+  it('ignores invalid measurements', () => {
+    expect(selectNetflixMenuTypographySample([
+      { fontSize: Number.NaN, depth: 2 },
+      { fontSize: 0, depth: 3 },
+    ])).toBeUndefined();
   });
 });
