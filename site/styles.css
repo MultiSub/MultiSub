@@ -689,6 +689,19 @@ code {
   font-size: 0.9rem;
 }
 
+.steps p a {
+  color: var(--cyan);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(39, 225, 255, 0.38);
+  text-underline-offset: 3px;
+}
+
+.steps p a:hover {
+  color: #9cf3ff;
+  text-decoration-color: currentColor;
+}
+
 .settings-showcase {
   display: grid;
   margin-top: 120px;
